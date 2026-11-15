@@ -77,8 +77,8 @@ Responsif untuk HP dan desktop, dan kontras warna sudah dicek.
 | `assets/js/liquid.js`, `assets/css/liquid.css` | Efek kaca (kilau mengikuti kursor, pil tab yang bisa digeser) yang dipakai bersama `index.html` dan `admin.html`. |
 | `assets/js/splash.js`, `assets/css/splash.css` | Layar muat 2-bit (canvas): hati piksel, deretan kursi heatmap, dan bar progres yang mengikuti tahap pemuatan sungguhan. Palet: `#0d090d`, `#881337`, `#ff2a5f`, `#ffd23f`. |
 | `icons/` | Ikon app dengan tema yang sama (hati piksel di atas deretan kursi): `icon-192.png` dan `icon-512.png` (favicon + PWA), `icon-maskable-512.png` (Android), `apple-touch-icon.png` (180px, iPhone). Nama file dipakai di `manifest.webmanifest`, `sw.js`, dan `<head>` kedua halaman. |
-| `scripts/` | `validate_data.py` (cek `data.json`), `make_thumbs.py` (thumbnail galeri), `check_js.py` dan `smoke_test.py` (uji cepat halaman di browser headless). |
-| `.github/workflows/` | `site-check.yml` memvalidasi data dan membuat thumbnail otomatis tiap `data.json`/foto di-upload; `smoke-test.yml` menjalankan uji cepat tiap kode berubah. |
+| `scripts/` | `validate_data.py` (cek `data.json`), `make_thumbs.py` (thumbnail galeri), `check_js.py`, `smoke_test.py`, dan `lineup_test.py` (uji halaman di browser headless, Python), serta `layout_test.js` (uji tata letak 7 ukuran layar, Node). Semua dijalankan otomatis oleh workflow di `.github/workflows/`. |
+| `.github/workflows/` | `site-check.yml` memvalidasi data dan membuat thumbnail otomatis tiap `data.json`/foto di-upload. `smoke-test.yml` menjalankan `check_js.py`, `smoke_test.py`, dan `lineup_test.py`. `layout-check.yml` menjalankan `layout_test.js` saat tampilan/kode berubah. Workflow harus di folder ini, bukan di `scripts/`. |
 
 > Setelah mengubah ikon atau daftar file di `sw.js`, naikkan `VERSION` di `sw.js` supaya cache lama terganti. Ikon PWA yang sudah terpasang di perangkat baru berganti setelah dihapus lalu dipasang ulang.
 

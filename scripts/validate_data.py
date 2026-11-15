@@ -92,6 +92,21 @@ def main():
     if leaked:
         err("data.json berisi bagian khusus backup lokal: " + ", ".join(leaked)
             + ". Ini sepertinya backup-lengkap.json, bukan paket publik.")
+    # --- daftar setlist resmi (opsional): dipakai kartu Cakupan setlist ---
+    sl = top.get("setlists")
+    if sl is not None:
+        if not isinstance(sl, list) or any(not isinstance(x, str) for x in sl):
+            err("setlists harus berupa array teks (satu nama setlist per item).")
+        else:
+            low = [x.strip().lower() for x in sl if x.strip()]
+            dupes = sorted({x for x in low if low.count(x) > 1})
+            if dupes:
+                warn(f"setlists punya nama ganda: {', '.join(dupes[:5])}")
+            known = set(low)
+            miss = sorted({r.get("setlist", "").strip() for r in records if isinstance(r, dict)
+                           and r.get("setlist", "").strip() and r.get("setlist", "").strip().lower() not in known})
+            if miss and known:
+                warn(f"{len(miss)} setlist di riwayat tidak ada di daftar setlists (salah ketik atau belum ditambahkan): {', '.join(miss[:3])}")
     n_tx = sum(1 for t in tickets if isinstance(t, dict) and t.get("tx"))
     if n_tx:
         err(f"{n_tx} tiket berisi kode transaksi (tx). Kosongkan sebelum dipublish.")
