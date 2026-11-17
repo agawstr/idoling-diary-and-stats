@@ -450,6 +450,21 @@ function lbGo(d) { // ganti ke foto sebelumnya (-1) / berikutnya (+1) di grup ya
   if (!calm()) lb.animate([{transform: `translate3d(${d * 64}px,0,0) scale(.96)`, opacity: 0}, {transform: 'none', opacity: 1}], {duration: 460, easing: lbEase});
   return true;
 }
+// Geometri "mendarat" foto yang terbang pulang: meniru cara thumbnail menampilkan foto (object-fit + object-position + radius),
+// supaya foto tidak lebih tinggi/lebar dari thumbnail lalu melompat saat overlay dilepas. Semua ukuran dalam px kotak foto besar (sebelum skala).
+function lbLandGeom(lb, src, r, bw, bh) {
+  const ba = bw / bh, na = lb.naturalWidth && lb.naturalHeight ? lb.naturalWidth / lb.naturalHeight : ba;
+  const cw = na > ba ? bw : bh * na, ch = na > ba ? bw / na : bh; // area foto sebenarnya di dalam kotak (object-fit: contain)
+  const cs = getComputedStyle(src), rad0 = parseFloat(cs.borderTopLeftRadius) || 0;
+  if (cs.objectFit !== 'cover') { // thumbnail menampilkan seluruh foto: cukup skala pas, tanpa potong
+    const s = Math.min(r.width / cw, r.height / ch);
+    return {s, clip: `inset(0px round ${rad0 / s}px)`, rad: rad0 / s, u0: 0, v0: 0};
+  }
+  const pos = cs.objectPosition.split(' ').map(v => v.endsWith('%') ? parseFloat(v) / 100 : .5), px = isNaN(pos[0]) ? .5 : pos[0], py = isNaN(pos[1]) ? .5 : pos[1];
+  const s = Math.max(r.width / cw, r.height / ch), vw = r.width / s, vh = r.height / s; // bagian foto yang tampak di thumbnail
+  const L = (bw - cw) / 2 + (cw - vw) * px, T = (bh - ch) / 2 + (ch - vh) * py;
+  return {s, clip: `inset(${T}px ${bw - L - vw}px ${bh - T - vh}px ${L}px round ${rad0 / s}px)`, rad: rad0 / s, u0: L + vw / 2 - bw / 2, v0: T + vh / 2 - bh / 2};
+}
 function closeLightbox() { // foto "terbang" kembali ke thumbnail asalnya; kalau thumbnail tak terlihat: mengecil + memudar
   if (!lbRoot.classList.contains('open') || lbRoot.classList.contains('closing')) return;
   const lb = $('lb-img'), src = lbSrc, tok = ++lbTok;
@@ -465,9 +480,13 @@ function closeLightbox() { // foto "terbang" kembali ke thumbnail asalnya; kalau
   lb.style.animation = 'none'; lb.style.transform = '';
   let anim;
   if (vis) {
-    const bw = cur.width / lbDrag.sc, bcx = cur.left + cur.width / 2, bcy = cur.top + cur.height / 2 - lbDrag.dy;
-    const dx = r.left + r.width / 2 - bcx, dy = r.top + r.height / 2 - bcy, s = r.width / bw;
-    anim = lb.animate([{transform: fromT, opacity: 1}, {transform: `translate3d(${dx}px,${dy}px,0) scale(${s})`, opacity: 1}], {duration: 380, easing: lbEase, fill: 'forwards'});
+    const bw = cur.width / lbDrag.sc, bh = cur.height / lbDrag.sc, bcx = cur.left + cur.width / 2, bcy = cur.top + cur.height / 2 - lbDrag.dy;
+    const g = lbLandGeom(lb, src, r, bw, bh), r0 = parseFloat(getComputedStyle(lb).borderTopLeftRadius) || 0;
+    const dx = r.left + r.width / 2 - bcx - g.s * g.u0, dy = r.top + r.height / 2 - bcy - g.s * g.v0;
+    anim = lb.animate([
+      {transform: fromT, opacity: 1, clipPath: `inset(0px round ${r0}px)`, borderRadius: r0 + 'px'},
+      {transform: `translate3d(${dx}px,${dy}px,0) scale(${g.s})`, opacity: 1, clipPath: g.clip, borderRadius: g.rad + 'px'}
+    ], {duration: 380, easing: lbEase, fill: 'forwards'});
     anim.onfinish = () => { if (tok === lbTok) lbShowSrc(); };
   } else {
     anim = lb.animate([{transform: fromT, opacity: 1}, {transform: `translate3d(0,${lbDrag.dy + 28}px,0) scale(${lbDrag.sc * .92})`, opacity: 0}], {duration: 280, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});

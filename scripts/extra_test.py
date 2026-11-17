@@ -213,6 +213,30 @@ with sync_playwright() as p:
     check(pg.evaluate("document.documentElement.lang") == "id", "<html lang='id'> terpasang")
     check(pg.evaluate("!!document.querySelector('meta[name=description]')"), "meta description ada")
     check(pg.evaluate("!!document.querySelector('[role=main], main')"), "ada landmark utama (main)")
+    # ---- Lightbox: animasi tutup (kontrol memudar + foto mendarat sama bentuk dengan thumbnail) ----
+    LB_CLOSE = """async (how) => { const root = document.getElementById('lightbox'), lb = document.getElementById('lb-img'), q = i => document.getElementById(i), th = lbSrc;
+      if (how === 'back') history.back(); else root.click();
+      await new Promise(r => setTimeout(r, 450));   // foto terbang 380 ms
+      const rc = lb.getBoundingClientRect(), cs = getComputedStyle(lb), sc = rc.width / (lb.offsetWidth || 1);
+      const mm = /inset\\(([^)]*?)(?: round [^)]*)?\\)/.exec(cs.clipPath), n = mm ? mm[1].trim().split(/\\s+/).map(parseFloat) : [0];
+      const [T, R, B, L] = n.length === 1 ? [n[0],n[0],n[0],n[0]] : n.length === 2 ? [n[0],n[1],n[0],n[1]] : n.length === 3 ? [n[0],n[1],n[2],n[1]] : n;
+      const tr = th.getBoundingClientRect(), v = {l: rc.left + L*sc, t: rc.top + T*sc, w: rc.width - (L+R)*sc, h: rc.height - (T+B)*sc};
+      return {d: Math.max(Math.abs(v.l-tr.left), Math.abs(v.t-tr.top), Math.abs(v.w-tr.width), Math.abs(v.h-tr.height)),
+              chrome: Math.max(+getComputedStyle(q('lb-x')).opacity, +getComputedStyle(q('lb-cap')).opacity, +getComputedStyle(q('lb-next')).opacity),
+              stillOpen: getComputedStyle(root).display !== 'none'}; }"""
+    pg.click(".tab[data-tab=gal]"); pg.wait_for_timeout(1200)
+    for how in ("back", "tap"):
+        pg.evaluate("document.querySelector('#gallery img[data-photo]').scrollIntoView({block:'center'})"); pg.wait_for_timeout(500)
+        pg.click("#gallery img[data-photo]"); pg.wait_for_timeout(1500)
+        r = pg.evaluate(LB_CLOSE, how)
+        check(r["d"] < 3, f"lightbox tutup via {how}: foto mendarat sama bentuk dengan thumbnail (selisih {r['d']:.2f}px, tadinya ±39px)")
+        check(r["chrome"] < 0.05 and r["stillOpen"], f"lightbox tutup via {how}: tombol/keterangan sudah memudar saat foto mendarat, overlay masih ada (opasitas {r['chrome']:.2f})")
+        pg.wait_for_timeout(700)
+    # buka lagi setelah menutup: kontrol harus kembali terlihat dan tidak ada sisa clip-path dari animasi tutup
+    pg.evaluate("document.querySelectorAll('#gallery img[data-photo]')[1].click()"); pg.wait_for_timeout(1500)
+    again = pg.evaluate("({clip: getComputedStyle(document.getElementById('lb-img')).clipPath, x: +getComputedStyle(document.getElementById('lb-x')).opacity, cap: +getComputedStyle(document.getElementById('lb-cap')).opacity})")
+    check(again["clip"] == "none" and again["x"] == 1 and again["cap"] == 1, f"lightbox dibuka lagi: tanpa sisa clip-path, kontrol terlihat penuh {again}")
+    pg.evaluate("escClose()"); pg.wait_for_timeout(900)
     check(not errs, f"tanpa error JS di tes logika/aksesibilitas {errs[:2] or ''}")
     ctx.close()
     b.close()
