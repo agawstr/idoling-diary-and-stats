@@ -213,15 +213,22 @@ with sync_playwright() as p:
     check(pg.evaluate("document.documentElement.lang") == "id", "<html lang='id'> terpasang")
     check(pg.evaluate("!!document.querySelector('meta[name=description]')"), "meta description ada")
     check(pg.evaluate("!!document.querySelector('[role=main], main')"), "ada landmark utama (main)")
-    # ---- Lightbox: animasi tutup (kontrol memudar + foto mendarat sama bentuk dengan thumbnail) ----
+    # ---- Lightbox: animasi tutup (kontrol memudar + foto mendarat sama bentuk, SUDUT, dan ukuran dengan thumbnail) ----
+    # Catatan: membandingkan dengan getBoundingClientRect() saja TIDAK cukup. Polaroid galeri dimiringkan (figure.gi rotate), dan kotak pembatas
+    # elemen miring lebih besar dari bentuk aslinya; persegi lurus seukuran kotak itu punya kotak pembatas yang sama, jadi lolos padahal menonjol.
     LB_CLOSE = """async (how) => { const root = document.getElementById('lightbox'), lb = document.getElementById('lb-img'), q = i => document.getElementById(i), th = lbSrc;
       if (how === 'back') history.back(); else root.click();
       await new Promise(r => setTimeout(r, 450));   // foto terbang 380 ms
-      const rc = lb.getBoundingClientRect(), cs = getComputedStyle(lb), sc = rc.width / (lb.offsetWidth || 1);
+      const rc = lb.getBoundingClientRect(), cs = getComputedStyle(lb), M = new DOMMatrix(cs.transform);
       const mm = /inset\\(([^)]*?)(?: round [^)]*)?\\)/.exec(cs.clipPath), n = mm ? mm[1].trim().split(/\\s+/).map(parseFloat) : [0];
       const [T, R, B, L] = n.length === 1 ? [n[0],n[0],n[0],n[0]] : n.length === 2 ? [n[0],n[1],n[0],n[1]] : n.length === 3 ? [n[0],n[1],n[2],n[1]] : n;
-      const tr = th.getBoundingClientRect(), v = {l: rc.left + L*sc, t: rc.top + T*sc, w: rc.width - (L+R)*sc, h: rc.height - (T+B)*sc};
-      return {d: Math.max(Math.abs(v.l-tr.left), Math.abs(v.t-tr.top), Math.abs(v.w-tr.width), Math.abs(v.h-tr.height)),
+      const deg = m => Math.atan2(m.b, m.a) * 180 / Math.PI, ang = deg(M), sx = Math.hypot(M.a, M.b), sy = Math.hypot(M.c, M.d);
+      const vw = (lb.offsetWidth - L - R) * sx, vh = (lb.offsetHeight - T - B) * sy, ox = (L - R) / 2, oy = (T - B) / 2;
+      const cx = rc.left + rc.width / 2 + (M.a * ox + M.c * oy), cy = rc.top + rc.height / 2 + (M.b * ox + M.d * oy);
+      const gi = th.closest('.gi'), G = gi ? new DOMMatrix(getComputedStyle(gi).transform) : new DOMMatrix(), tcs = getComputedStyle(th), tr = th.getBoundingClientRect();
+      const tw = parseFloat(tcs.width) * Math.hypot(G.a, G.b), tH = parseFloat(tcs.height) * Math.hypot(G.c, G.d);
+      return {gang: deg(G), dAng: Math.abs(ang - deg(G)), dW: Math.abs(vw - tw), dH: Math.abs(vh - tH), bbox: [rc.width, tr.width],
+              dC: Math.hypot(cx - (tr.left + tr.width / 2), cy - (tr.top + tr.height / 2)),
               chrome: Math.max(+getComputedStyle(q('lb-x')).opacity, +getComputedStyle(q('lb-cap')).opacity, +getComputedStyle(q('lb-next')).opacity),
               stillOpen: getComputedStyle(root).display !== 'none'}; }"""
     pg.click(".tab[data-tab=gal]"); pg.wait_for_timeout(1200)
@@ -229,7 +236,10 @@ with sync_playwright() as p:
         pg.evaluate("document.querySelector('#gallery img[data-photo]').scrollIntoView({block:'center'})"); pg.wait_for_timeout(500)
         pg.click("#gallery img[data-photo]"); pg.wait_for_timeout(1500)
         r = pg.evaluate(LB_CLOSE, how)
-        check(r["d"] < 3, f"lightbox tutup via {how}: foto mendarat sama bentuk dengan thumbnail (selisih {r['d']:.2f}px, tadinya ±39px)")
+        check(abs(r["gang"]) > 1, f"lightbox tutup via {how}: kartu yang diuji memang miring ({r['gang']:.2f}°), jadi tes ini benar-benar menguji rotasi")
+        check(r["dAng"] < 0.3, f"lightbox tutup via {how}: foto mendarat dengan sudut yang sama dengan kartu miring (selisih {r['dAng']:.2f}°)")
+        check(r["dW"] < 1.5 and r["dH"] < 1.5, f"lightbox tutup via {how}: ukuran asli sama dengan thumbnail, bukan kotak pembatas (selisih {r['dW']:.2f}×{r['dH']:.2f}px)")
+        check(r["dC"] < 1.5, f"lightbox tutup via {how}: titik pusat sama dengan thumbnail (selisih {r['dC']:.2f}px)")
         check(r["chrome"] < 0.05 and r["stillOpen"], f"lightbox tutup via {how}: tombol/keterangan sudah memudar saat foto mendarat, overlay masih ada (opasitas {r['chrome']:.2f})")
         pg.wait_for_timeout(700)
     # buka lagi setelah menutup: kontrol harus kembali terlihat dan tidak ada sisa clip-path dari animasi tutup
