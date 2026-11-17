@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Buat thumbnail galeri: photos/X.jpg -> photos/t/X.jpg
 
-Nama file thumbnail harus sama dengan aslinya karena shared.js memakai
+Nama file thumbnail harus sama dengan aslinya karena thumbOf() di assets/js/shared/core.js memakai
 thumbOf(): 'photos/X' -> 'photos/t/X'.
 
 - Thumbnail yang sudah ada tidak ditimpa (pakai --force untuk membuat ulang).

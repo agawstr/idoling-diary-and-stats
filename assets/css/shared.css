@@ -398,7 +398,6 @@ h1,.sec,.sec2{text-wrap:balance}
 .blur-n{display:inline-block;filter:blur(5px);user-select:none;pointer-events:none}
 
 /* ===== penghalusan & animasi tambahan (index + admin) ===== */
-:root{--ease:cubic-bezier(.32,.72,0,1)}
 @keyframes drop{from{opacity:0;transform:translateY(-10px)}}
 @keyframes popin{from{opacity:0;transform:translateY(4px) scale(.96)}}
 html{scroll-behavior:smooth}
@@ -428,13 +427,7 @@ html{scroll-behavior:smooth}
 .gi-x{font-size:11px;font-style:italic;color:#7a5a1a}
 
 /* liquid-glass.css — gaya iOS "liquid glass". Muat SETELAH shared.css */
-:root{
-  --g-bg:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
-  --g-bg-hi:linear-gradient(135deg,rgba(255,255,255,.26),rgba(255,255,255,.08));
-  --g-line:rgba(255,255,255,.18);
-  --g-blur:blur(22px) saturate(180%) brightness(1.05);
-  --g-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.06),inset 0 0 24px rgba(255,255,255,.04);
-}
+/* token kaca (--g-bg, --g-line, --g-blur, --g-shadow) dan kurva gerak (--ios/--spring/--ease) didefinisikan SATU kali di liquid.css */
 /* latar berwarna supaya kaca punya sesuatu untuk dibur */
 body{background:#0d090d;position:relative}
 body::before{content:'';position:fixed;inset:-10%;z-index:-1;pointer-events:none;
@@ -516,13 +509,6 @@ body::before{content:'';position:fixed;inset:-10%;z-index:-1;pointer-events:none
 .catwalk{box-shadow:0 8px 20px rgba(255,42,95,.18),inset 1px 0 0 rgba(255,150,170,.2),inset -1px 0 0 rgba(255,150,170,.2),inset 0 -1px 0 rgba(255,150,170,.2)}
 
 /* 3) kaca bernuansa merah (bukan abu-abu) */
-:root{
-  --g-bg:linear-gradient(135deg,rgba(255,60,110,.20),rgba(136,19,55,.10) 60%,rgba(60,8,22,.25));
-  --g-bg-hi:linear-gradient(135deg,rgba(255,60,110,.30),rgba(136,19,55,.16));
-  --g-line:rgba(255,110,150,.28);
-  --g-blur:blur(20px) saturate(160%);
-  --g-shadow:0 8px 32px rgba(40,0,12,.55),inset 0 1px 0 rgba(255,170,190,.35),inset 0 -1px 0 rgba(255,60,110,.08);
-}
 .stage{background:linear-gradient(180deg,rgba(255,42,95,.42),rgba(136,19,55,.18))}
 .catwalk{background:linear-gradient(180deg,rgba(136,19,55,.4),rgba(60,8,22,.35))}
 .seat{background:linear-gradient(160deg,rgba(255,60,110,.16),rgba(60,8,22,.45));border:1px solid rgba(255,90,130,.22);color:#e8788f;
@@ -546,7 +532,6 @@ body::before{content:'';position:fixed;inset:-10%;z-index:-1;pointer-events:none
 .catwalk{background:linear-gradient(180deg,rgba(150,22,60,.40),rgba(70,10,28,.38));box-shadow:0 8px 20px rgba(255,42,95,.15),inset 1px 0 0 rgba(255,150,170,.15),inset -1px 0 0 rgba(255,150,170,.15),inset 0 -1px 0 rgba(255,150,170,.15)}
 
 /* animasi lebih halus: easing & durasi lebih lembut, pegas ala iOS */
-:root{--ease:cubic-bezier(.32,.72,0,1);--spring:cubic-bezier(.32,.72,0,1)}
 @keyframes pop-in{from{opacity:0;transform:translateY(22px) scale(.93)}}
 .shown .sl-row,
 .shown .rk{animation-duration:.7s;animation-timing-function:var(--ease)}
@@ -566,7 +551,6 @@ body::before{content:'';position:fixed;inset:-10%;z-index:-1;pointer-events:none
 /* galeri: foto selalu muncul bertahap (juga saat ganti sub-tab / filter member), tab tanpa memantul */
 
 /* tanpa mantul: semua "pegas" jadi easing halus tanpa overshoot */
-:root{--spring:cubic-bezier(.32,.72,0,1)}
 
 .gi figcaption{font-family:"Caveat","Segoe Print","Bradley Hand",cursive;font-size:15px}
 .gi b{font-size:19px}
@@ -834,7 +818,6 @@ img,canvas{max-width:100%}
    v6 — animasi ala iOS (kurva pegas), lembar bawah di HP, foto modal tidak "muncul tiba-tiba",
         pindah tab lebih ringan
    ===================================================================== */
-:root{--ios:cubic-bezier(.32,.72,0,1)}
 
 /* ---- pindah tab: tanpa animasi di wadah besar (itu yang bikin patah), gerak hanya di item yang masuk ---- */
 
@@ -883,7 +866,7 @@ img,canvas{max-width:100%}
    Perpindahan tab digerakkan app.js (switchTab); blok ini hanya merapikan gaya, mematikan animasi
    lama yang menimpa satu sama lain, dan memperbaiki beberapa posisi yang janggal.
    ===================================================================== */
-:root{--ios:cubic-bezier(.32,.72,0,1);--ease:cubic-bezier(.32,.72,0,1);--spring:cubic-bezier(.32,.72,0,1);--col-w:840px}
+:root{--col-w:840px}
 
 /* --- 1. Tab: wadah & item tidak lagi dianimasikan oleh CSS (sebelumnya 6 lapis aturan saling menimpa,
         akibatnya kadang jalan, kadang tidak). Semuanya dipegang WAAPI di app.js. --- */
@@ -967,7 +950,7 @@ img,canvas{max-width:100%}
 .tab-ind{transform-origin:0 0}
 
 /* =====================================================================
-   Tingkat performa (ditentukan shared.js)
+   Tingkat performa (ditentukan shared/*.js)
      html[data-perf=lite]  : HP, tablet sentuh, hemat data, perangkat lemah  -> layer & bayangan lebih sedikit
      html[data-glass=off]  : kaca dimatikan (perangkat lemah, hemat data, reduced-transparency, atau dimatikan otomatis)
    ===================================================================== */
@@ -1401,3 +1384,9 @@ button.sh-row:active{transform:scale(.98)}
 .cmp-bars i.b{background:linear-gradient(90deg,#ff2a5f,#ff7a98)}
 @media(max-width:600px){#cmp-cust{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.cmp-r,.cmp-bars i{animation:none}}
+
+/* ---------- Area sentuh (WCAG 2.5.8): tampilan tidak berubah, hanya zona ketuk diperluas ke ~40px dengan pseudo-element transparan ---------- */
+.tl-s,.rk,.info-btn{position:relative}
+.tl-s::after,.rk::after,.info-btn::after{content:'';position:absolute;inset:-6px -4px}
+.rk::after{inset:-3px 0}
+.info-btn::after{inset:-10px}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validasi data.json + photos/ sebelum situs dipublish.
 
-Aturannya mengikuti sanitize() di shared.js: data yang tidak lolos di situ
+Aturannya mengikuti sanitize() di shared/*.js: data yang tidak lolos di situ
 akan dibuang diam-diam oleh halaman publik, jadi di sini dilaporkan dulu.
 
   ERROR   -> workflow gagal (data jangan dipublish)
@@ -42,11 +42,11 @@ def valid_date(s):
 
 
 def load_seats():
-    """Baca COUNTS dari shared.js supaya selalu sinkron dengan peta."""
-    src = (ROOT / "assets" / "js" / "shared.js").read_text(encoding="utf-8")
+    """Baca COUNTS dari shared/*.js supaya selalu sinkron dengan peta."""
+    src = (ROOT / "assets" / "js" / "shared" / "core.js").read_text(encoding="utf-8")
     m = re.search(r"const COUNTS\s*=\s*\{(.*?)\};", src, re.S)
     if not m:
-        sys.exit("Tidak menemukan COUNTS di shared.js")
+        sys.exit("Tidak menemukan COUNTS di assets/js/shared/core.js")
     seats = set()
     for row, arr in re.findall(r"([A-Z])\s*:\s*\[([\d,\s]+)\]", m.group(1)):
         total = sum(int(x) for x in arr.split(","))
@@ -55,7 +55,7 @@ def load_seats():
 
 
 def check_photo(where, value, used):
-    """Cek satu field foto. Aturan sama dengan okPhoto() di shared.js."""
+    """Cek satu field foto. Aturan sama dengan okPhoto() di shared/*.js."""
     if not value:
         return
     if value.startswith("data:image/"):
@@ -107,6 +107,15 @@ def main():
                            and r.get("setlist", "").strip() and r.get("setlist", "").strip().lower() not in known})
             if miss and known:
                 warn(f"{len(miss)} setlist di riwayat tidak ada di daftar setlists (salah ketik atau belum ditambahkan): {', '.join(miss[:3])}")
+    # Harga tiket hanya boleh ada di admin/backup. Halaman publik memang tidak menampilkannya,
+    # tetapi data.json bisa diunduh siapa pun, jadi nilainya harus 0 di sini.
+    n_price = sum(1 for r in records if isinstance(r, dict) and (r.get("harga") or 0) > 0)
+    if n_price:
+        err(f"{n_price} record berisi harga tiket (harga > 0). data.json publik harus berharga 0; "
+            "buat ulang lewat 'Unduh paket (ZIP)' di admin, atau kosongkan field harga.")
+    n_tprice = sum(1 for t in tickets if isinstance(t, dict) and any(k in t for k in ("price", "harga", "amount", "total")))
+    if n_tprice:
+        err(f"{n_tprice} tiket berisi field harga/nominal. Hapus sebelum dipublish.")
     n_tx = sum(1 for t in tickets if isinstance(t, dict) and t.get("tx"))
     if n_tx:
         err(f"{n_tx} tiket berisi kode transaksi (tx). Kosongkan sebelum dipublish.")
@@ -153,7 +162,7 @@ def main():
         elif isinstance(lu, list) and len(lu) != len(set(lu)):
             warn(f"{tag}: lineup berisi nama ganda")
         if isinstance(lu, list):
-            # batas yang dipotong diam-diam oleh sanitize() di shared.js
+            # batas yang dipotong diam-diam oleh sanitize() di shared/*.js
             if len(lu) > 80:
                 warn(f"{tag}: lineup {len(lu)} nama; halaman publik hanya membaca 80 pertama")
             for m in lu:

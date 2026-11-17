@@ -43,7 +43,14 @@ async function openPage(browser, base, url, [w, h, touch]) {
 const tabKeys = page => page.evaluate(() => [...document.querySelectorAll('.tabbar .tab')].map(t => t.dataset.tab || t.textContent.trim()));
 const clickTab = async (page, k) => {
   await page.evaluate(k => { const b = [...document.querySelectorAll('.tabbar .tab')].find(x => (x.dataset.tab || x.textContent.trim()) === k); if (b) b.click(); }, k);
-  await page.waitForTimeout(1000);
+  // Tunggu animasi masuk tab SELESAI (bukan jeda tetap): getBoundingClientRect ikut transform, jadi mengukur di tengah animasi
+  // memberi posisi meleset beberapa px saat CPU sibuk (flaky). Animasi tak berhingga (denyut dsb.) diabaikan; batas 4 dtk.
+  await page.waitForTimeout(150);
+  await page.evaluate(() => Promise.race([
+    Promise.all(document.getAnimations().filter(a => a.effect && a.effect.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => {}))),
+    new Promise(r => setTimeout(r, 4000))
+  ]));
+  await page.waitForTimeout(250);
 };
 
 // 1. tidak melebar / tidak ada elemen keluar layar

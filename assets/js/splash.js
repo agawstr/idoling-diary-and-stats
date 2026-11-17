@@ -6,7 +6,10 @@
   if (!el || !cv) return;
   const W = 80, H = 45, x = cv.getContext('2d');
   const P = ['#0d090d', '#881337', '#ff2a5f', '#ffd23f']; // latar, bordeaux, pink, emas
-  const MIN = +el.dataset.min || 2400, MAX = +el.dataset.max || 6000;
+  /* Waktu tampil minimum dipendekkan: pemakai yang sudah punya salinan data (kelas has-cache, diset di <head>) tidak perlu
+     menunggu animasi; kunjungan pertama tetap melihat animasinya cukup lama agar tidak berkedip. */
+  const cached = document.documentElement.classList.contains('has-cache');
+  const MIN = cached ? Math.min(350, +el.dataset.min || 350) : (+el.dataset.min || 900), MAX = +el.dataset.max || 6000;
   const need = (el.dataset.stages || 'ready').split(/\s+/).filter(Boolean);
   const got = new Set(), t0 = performance.now(), lab = document.getElementById('splash-t');
   let f = 0, closed = false;
@@ -58,7 +61,7 @@
   function finish() {
     if (closed) return; closed = true; clearInterval(timer); clearTimeout(maxT);
     try { api.beforeClose && api.beforeClose(); } catch (e) {}
-    setTimeout(() => { el.classList.add('done'); setTimeout(() => el.remove(), 700); }, 260); // jeda singkat: bar penuh terlihat dulu
+    setTimeout(() => { el.classList.add('done'); setTimeout(() => el.remove(), 700); }, 160); // jeda singkat: bar penuh terlihat dulu
   }
   const api = window.Splash = {
     beforeClose: null,

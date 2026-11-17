@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 bad = 0
-files = sorted((ROOT / "assets" / "js").glob("*.js")) + [ROOT / "sw.js"]
+files = sorted((ROOT / "assets" / "js").rglob("*.js")) + [ROOT / "sw.js"]
 for f in files:
     head = f.read_text(encoding="utf-8", errors="replace").lstrip()[:200].lower()
     if head.startswith("<!doctype") or head.startswith("<html") or head.startswith("<"):

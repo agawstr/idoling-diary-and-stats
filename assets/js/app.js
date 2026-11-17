@@ -1,4 +1,4 @@
-/* app.js — perilaku "seperti app" untuk index.html (dimuat setelah shared.js).
+/* app.js — perilaku "seperti app" untuk index.html (dimuat setelah shared/*.js).
    Butuh dari halaman: window.refreshData() (opsional, dipakai tarik-untuk-muat-ulang). */
 (() => {
   'use strict';
@@ -189,7 +189,7 @@
       run(() => { card.style.viewTransitionName = ''; modal.style.viewTransitionName = 'seat-card'; baseOpen(code); },
         () => { modal.style.viewTransitionName = ''; });
     };
-    window.seatVtClose = el => { // dipanggil dari closeEl di shared.js
+    window.seatVtClose = el => { // dipanggil dari closeEl di shared/*.js
       if (!usable() || modal.style.transform) return false; // sedang ditarik (gagang sheet): pakai animasi biasa
       const card = src;
       modal.style.viewTransitionName = 'seat-card';
@@ -289,7 +289,7 @@
       const t = e.target;
       if (t && t.id === 'tl-q' && t.value) { t.value = ''; t.dispatchEvent(new Event('input', {bubbles: true})); }
       else if (typing(t)) t.blur();
-      return; // modal / panel / lightbox ditutup oleh handler di shared.js
+      return; // modal / panel / lightbox ditutup oleh handler di shared/*.js
     }
     if (typing(e.target) || dialogOpen()) return;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -323,7 +323,7 @@
      dan menghabiskan sekitar 2/3 biaya render saat pindah tab. Geser tab + pil pegas tetap utuh; yang dikurangi hanya animasi kartu satu-satu. */
   const cheap = () => perf.lite() || navigator.maxTouchPoints > 1;
   document.documentElement.toggleAttribute('data-cheap', cheap());
-  const lite = () => perf.lite(); // tingkat performa dari shared.js (HP, tablet sentuh, hemat data, perangkat lemah): layer lebih sedikit supaya tetap 60fps
+  const lite = () => perf.lite(); // tingkat performa dari shared/*.js (HP, tablet sentuh, hemat data, perangkat lemah): layer lebih sedikit supaya tetap 60fps
   // sidebar vertikal hanya untuk laptop/mouse (>=1280px). iPad/tablet sentuh memakai dock bawah, jadi geraknya horizontal seperti di HP
   const sideNav = () => mqDesk.matches && !mqTouch.matches;
   const travel = () => sideNav() ? 28 : lite() ? 34 : Math.round(Math.min(104, Math.max(48, innerWidth * 0.18)));
@@ -409,7 +409,7 @@
     return anims;
   }
 
-  // playEnter (dipakai shared.js saat data pertama tampil) memakai sistem yang sama
+  // playEnter (dipakai shared/*.js saat data pertama tampil) memakai sistem yang sama
   if (typeof playEnter === 'function') {
     const baseEnter = playEnter;
     playEnter = function (el) {
@@ -618,7 +618,7 @@
       const im = e.target; if (!im || im.tagName !== 'IMG') return;
       const b = box(im); if (!b) return;
       b.classList.remove('bad');
-      if (b.classList.contains('last-ph')) { im.classList.add('ld'); b.classList.add('ld'); } // galeri & modal sudah ditangani shared.js
+      if (b.classList.contains('last-ph')) { im.classList.add('ld'); b.classList.add('ld'); } // galeri & modal sudah ditangani shared/*.js
     }, true);
     document.addEventListener('error', e => {
       const im = e.target; if (!im || im.tagName !== 'IMG') return;

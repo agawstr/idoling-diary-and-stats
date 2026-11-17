@@ -154,7 +154,7 @@ html[data-cheap] .head h1,html[data-cheap] .head .sub,html[data-cheap] .head .ba
 html[data-cheap] .enter .tl-i.a,html[data-cheap] .enter .ev-g,html[data-cheap] .enter .ev-c,
 html[data-cheap] #gallery .gi.a,html[data-cheap] body.app #gallery .gi.a,html[data-cheap] .enter #gallery .gi{animation:none!important}
 
-/* animasi CSS (bukan JS) diperlambat sedikit supaya sejalan dengan pengali di shared.js */
+/* animasi CSS (bukan JS) diperlambat sedikit supaya sejalan dengan pengali di shared/*.js */
 .overlay.open>.modal{animation-duration:calc(.63s * var(--spd,1))} /* .63 x 1.35 = .85s, nilai lama */
 #lightbox.open>img{animation-duration:calc(.555s * var(--spd,1))}
 html:not([data-cheap]) .head h1{animation-duration:calc(.7s * var(--spd,1))}
@@ -268,7 +268,7 @@ html #seat-modal.docked.over.open.open.open.closing::before{animation:ovb-out ca
 
 
 /* ---------- Chip lompat + bar cari = SATU panel kaca (semua lebar layar kecuali laptop #split) ----------
-   Chip & kolom cari polos (tanpa latar sendiri); latar kacanya satu elemen #bars-bg (dipasang shared.js).
+   Chip & kolom cari polos (tanpa latar sendiri); latar kacanya satu elemen #bars-bg (dipasang shared/*.js).
    HP: panel selebar layar, menyambung langsung di bawah header, ujung bawah melengkung.
    Tablet/jendela sempit: panel kartu melayang di bawah tab bar, selebar kolom konten. Tanpa animasi masuk/keluar. */
 /* Titik awal konten tiap tab harus sama (tepat 16px di bawah tab bar). Chip lompat punya padding atas 8px (untuk panel kaca saat menempel),

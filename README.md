@@ -67,20 +67,20 @@ Responsif untuk HP dan desktop, dan kontras warna sudah dicek.
 | File | Fungsi |
 |---|---|
 | `index.html` | Halaman publik (read-only). Membaca `data.json`. |
-| `admin.html` | Halaman untuk mengelola data. Data disimpan di `localStorage` browser. |
+| `admin.html` | Halaman untuk mengelola data (hanya kerangka HTML; gaya di `assets/css/admin.css`, logika di `assets/js/admin-storage.js` + `admin-main.js`). Data disimpan di IndexedDB browser (cadangan: `localStorage`). |
 | `data.json` | Data yang ditampilkan di halaman publik, dibuat dari tombol **Unduh paket (ZIP)** di admin. |
 | `photos/` | Foto 2-Shot/Chekicha sebagai file terpisah (ikut di dalam paket ZIP). Versi kecil untuk galeri ada di `photos/t/` (dibuat dengan `scripts/make_thumbs.py`); kalau belum ada, galeri memakai foto penuh. |
-| `assets/js/shared.js` | Kode bersama: layout kursi, validasi data, peta, statistik, modal, popover, kartu PNG. |
-| `assets/css/shared.css` | Gaya bersama untuk kedua halaman. Bagian paling bawah (`v4`) berisi perbaikan performa, dropdown, riwayat, dan polaroid. |
+| `assets/js/shared/*.js` | Kode bersama index + admin, dipecah per topik dan dimuat berurutan (skrip klasik, satu lingkup global): `core` (utilitas, performa, validasi data, peta kursi, popover, lightbox), `stats`, `views` (kalender, galeri, riwayat), `share` (kartu PNG), `tickets`, `motion` (animasi), `extras`, `members`, `compare`, `subtabs`. **Urutan muat penting** dan harus sama di `index.html`, `admin.html`; `scripts/check_assets.py` memeriksanya. |
+| `assets/css/shared.css` | Gaya bersama untuk kedua halaman. Token kaca dan kurva gerak (`--g-*`, `--ios`) hanya didefinisikan di `liquid.css`. |
 | `assets/js/app.js`, `assets/css/app.css` | Perilaku dan gaya "seperti app" khusus `index.html` (tab bawah, tarik-untuk-muat-ulang, dll). |
 | `sw.js`, `manifest.webmanifest` | PWA: cache offline dan pengaturan install. Harus tetap di root. |
 | `assets/js/liquid.js`, `assets/css/liquid.css` | Efek kaca (kilau mengikuti kursor, pil tab yang bisa digeser) yang dipakai bersama `index.html` dan `admin.html`. |
 | `assets/js/splash.js`, `assets/css/splash.css` | Layar muat 2-bit (canvas): hati piksel, deretan kursi heatmap, dan bar progres yang mengikuti tahap pemuatan sungguhan. Palet: `#0d090d`, `#881337`, `#ff2a5f`, `#ffd23f`. |
 | `icons/` | Ikon app dengan tema yang sama (hati piksel di atas deretan kursi): `icon-192.png` dan `icon-512.png` (favicon + PWA), `icon-maskable-512.png` (Android), `apple-touch-icon.png` (180px, iPhone). Nama file dipakai di `manifest.webmanifest`, `sw.js`, dan `<head>` kedua halaman. |
-| `scripts/` | `validate_data.py` (cek `data.json`), `make_thumbs.py` (thumbnail galeri), `check_js.py`, `smoke_test.py`, dan `lineup_test.py` (uji halaman di browser headless, Python), serta `layout_test.js` (uji tata letak 7 ukuran layar, Node). Semua dijalankan otomatis oleh workflow di `.github/workflows/`. |
-| `.github/workflows/` | `site-check.yml` memvalidasi data dan membuat thumbnail otomatis tiap `data.json`/foto di-upload. `smoke-test.yml` menjalankan `check_js.py`, `smoke_test.py`, dan `lineup_test.py`. `layout-check.yml` menjalankan `layout_test.js` saat tampilan/kode berubah. Workflow harus di folder ini, bukan di `scripts/`. |
+| `scripts/` | `validate_data.py` (cek `data.json`, termasuk **harga harus 0** dan tanpa kode transaksi), `make_thumbs.py` (thumbnail galeri), `check_js.py`, `check_assets.py` (daftar aset index = admin = service worker), `sw_unit_test.js` (logika service worker: Data Saver, unduhan ganda, timeout), `smoke_test.py`, `lineup_test.py`, dan `extra_test.py` (offline nyata, jaringan lambat, kebocoran data, logika murni, aksesibilitas dasar; browser headless, Python), serta `layout_test.js` (uji tata letak 7 ukuran layar, Node). Semua dijalankan otomatis oleh workflow di `.github/workflows/`. |
+| `.github/workflows/` | `site-check.yml` memvalidasi data dan membuat thumbnail otomatis tiap `data.json`/foto di-upload. `smoke-test.yml` menjalankan `check_js.py`, `check_assets.py`, `sw_unit_test.js`, `smoke_test.py`, `lineup_test.py`, dan `extra_test.py`. `layout-check.yml` menjalankan `layout_test.js` saat tampilan/kode berubah. Workflow harus di folder ini, bukan di `scripts/`. |
 
-> Setelah mengubah ikon atau daftar file di `sw.js`, naikkan `VERSION` di `sw.js` supaya cache lama terganti. Ikon PWA yang sudah terpasang di perangkat baru berganti setelah dihapus lalu dipasang ulang.
+> Setelah mengubah ikon atau daftar file di `sw.js`, naikkan `VERSION` di `sw.js` supaya cache shell lama terganti (cache foto/font/data sengaja tidak ikut `VERSION`, jadi foto tidak diunduh ulang tiap rilis). Shell memakai strategi jaringan-dulu dengan batas 3,5 dtk lalu jatuh ke cache. Ikon PWA yang sudah terpasang di perangkat baru berganti setelah dihapus lalu dipasang ulang.
 
 > `index.html`, `admin.html`, `sw.js`, `manifest.webmanifest`, dan `data.json` harus di root. CSS dan JS ada di `assets/`; jangan dipindah tanpa memperbarui path di kedua halaman HTML dan `sw.js`.
 
@@ -106,7 +106,7 @@ Data di admin tersimpan di browser yang dipakai untuk input. Kalau pindah perang
     "date": "2026-03-12",
     "sesi": "Malam",
     "note": "Momen spesial",
-    "harga": 150000,
+    "harga": 0,
     "tiket": "Reguler",
     "twoshot": "Ya",
     "tsType": "roulette",
@@ -118,3 +118,7 @@ Data di admin tersimpan di browser yang dipakai untuk input. Kalau pindah perang
     "ckPhoto": ""
   }
 ]
+
+## Catatan keamanan data
+
+`data.json` bisa diunduh siapa pun, jadi **harga tiket harus 0** dan kode transaksi (`tx`) kosong di versi publik. Halaman publik memang tidak menampilkannya, tetapi file-nya tetap terbaca. Unduh paket lewat tombol **Unduh paket (ZIP)** di admin (otomatis mengosongkan harga); `validate_data.py` akan menggagalkan workflow kalau masih ada harga di `data.json`. Kalau repo pernah dipublikasikan dengan harga terisi, nilai lama tetap ada di riwayat git.

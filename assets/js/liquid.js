@@ -1,10 +1,10 @@
-/* liquid.js — perilaku "liquid" yang dipakai BERSAMA oleh index.html dan admin.html (dimuat setelah shared.js).
+/* liquid.js — perilaku "liquid" yang dipakai BERSAMA oleh index.html dan admin.html (dimuat setelah shared/*.js).
    Isi:
    1. kilau kaca yang mengikuti kursor (mouse saja)  -> hanya mengisi --mx/--my, tampilannya di liquid.css
    2. tahan lalu geser pil tab bar (HP / tablet sentuh), lepas untuk pindah tab
    3. pengaman frame drop: liquid.watch(ms, say) mematikan efek kaca kalau pindah tab terus-menerus patah-patah
    4. getar halus saat ketuk kursi / pindah tab (Android)
-   Butuh dari halaman: window.switchTab(name), plus moveInd() / indFollow() dari shared.js. */
+   Butuh dari halaman: window.switchTab(name), plus moveInd() / indFollow() dari shared/*.js. */
 (() => {
   'use strict';
   const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
