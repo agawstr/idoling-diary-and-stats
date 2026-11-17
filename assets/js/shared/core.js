@@ -450,18 +450,31 @@ function lbGo(d) { // ganti ke foto sebelumnya (-1) / berikutnya (+1) di grup ya
   if (!calm()) lb.animate([{transform: `translate3d(${d * 64}px,0,0) scale(.96)`, opacity: 0}, {transform: 'none', opacity: 1}], {duration: 460, easing: lbEase});
   return true;
 }
+// Rotasi & skala yang menempel pada thumbnail lewat elemen induknya (mis. polaroid figure.gi yang dimiringkan -1,8°..+1,8°).
+// getBoundingClientRect() pada elemen miring mengembalikan kotak pembatas yang LEBIH BESAR dari bentuk aslinya, jadi ukuran dan sudut
+// asli diambil dari komposisi transform induk (bagian linear saja; titik pusat kotak pembatas tetap sama dengan pusat elemen).
+function lbThumbPose(src) {
+  const chain = []; for (let e = src; e && e !== document.documentElement; e = e.parentElement) chain.push(e);
+  let m = new DOMMatrix();
+  for (const e of chain.reverse()) { // dari paling luar ke paling dalam
+    const t = getComputedStyle(e).transform;
+    if (t && t !== 'none') { const d = new DOMMatrix(t); m = m.multiply(new DOMMatrix([d.a, d.b, d.c, d.d, 0, 0])); }
+  }
+  const cs = getComputedStyle(src);
+  return {rot: Math.atan2(m.b, m.a) * 180 / Math.PI, w: parseFloat(cs.width) * Math.hypot(m.a, m.b), h: parseFloat(cs.height) * Math.hypot(m.c, m.d)};
+}
 // Geometri "mendarat" foto yang terbang pulang: meniru cara thumbnail menampilkan foto (object-fit + object-position + radius),
 // supaya foto tidak lebih tinggi/lebar dari thumbnail lalu melompat saat overlay dilepas. Semua ukuran dalam px kotak foto besar (sebelum skala).
-function lbLandGeom(lb, src, r, bw, bh) {
+function lbLandGeom(lb, src, tw, th, bw, bh) {
   const ba = bw / bh, na = lb.naturalWidth && lb.naturalHeight ? lb.naturalWidth / lb.naturalHeight : ba;
   const cw = na > ba ? bw : bh * na, ch = na > ba ? bw / na : bh; // area foto sebenarnya di dalam kotak (object-fit: contain)
   const cs = getComputedStyle(src), rad0 = parseFloat(cs.borderTopLeftRadius) || 0;
   if (cs.objectFit !== 'cover') { // thumbnail menampilkan seluruh foto: cukup skala pas, tanpa potong
-    const s = Math.min(r.width / cw, r.height / ch);
+    const s = Math.min(tw / cw, th / ch);
     return {s, clip: `inset(0px round ${rad0 / s}px)`, rad: rad0 / s, u0: 0, v0: 0};
   }
   const pos = cs.objectPosition.split(' ').map(v => v.endsWith('%') ? parseFloat(v) / 100 : .5), px = isNaN(pos[0]) ? .5 : pos[0], py = isNaN(pos[1]) ? .5 : pos[1];
-  const s = Math.max(r.width / cw, r.height / ch), vw = r.width / s, vh = r.height / s; // bagian foto yang tampak di thumbnail
+  const s = Math.max(tw / cw, th / ch), vw = tw / s, vh = th / s; // bagian foto yang tampak di thumbnail
   const L = (bw - cw) / 2 + (cw - vw) * px, T = (bh - ch) / 2 + (ch - vh) * py;
   return {s, clip: `inset(${T}px ${bw - L - vw}px ${bh - T - vh}px ${L}px round ${rad0 / s}px)`, rad: rad0 / s, u0: L + vw / 2 - bw / 2, v0: T + vh / 2 - bh / 2};
 }
@@ -481,11 +494,12 @@ function closeLightbox() { // foto "terbang" kembali ke thumbnail asalnya; kalau
   let anim;
   if (vis) {
     const bw = cur.width / lbDrag.sc, bh = cur.height / lbDrag.sc, bcx = cur.left + cur.width / 2, bcy = cur.top + cur.height / 2 - lbDrag.dy;
-    const g = lbLandGeom(lb, src, r, bw, bh), r0 = parseFloat(getComputedStyle(lb).borderTopLeftRadius) || 0;
-    const dx = r.left + r.width / 2 - bcx - g.s * g.u0, dy = r.top + r.height / 2 - bcy - g.s * g.v0;
+    const pose = lbThumbPose(src), g = lbLandGeom(lb, src, pose.w || r.width, pose.h || r.height, bw, bh), r0 = parseFloat(getComputedStyle(lb).borderTopLeftRadius) || 0;
+    const a = pose.rot * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a); // pusat area foto yang terlihat ikut berputar bersama kartu
+    const dx = r.left + r.width / 2 - bcx - g.s * (g.u0 * ca - g.v0 * sa), dy = r.top + r.height / 2 - bcy - g.s * (g.u0 * sa + g.v0 * ca);
     anim = lb.animate([
-      {transform: fromT, opacity: 1, clipPath: `inset(0px round ${r0}px)`, borderRadius: r0 + 'px'},
-      {transform: `translate3d(${dx}px,${dy}px,0) scale(${g.s})`, opacity: 1, clipPath: g.clip, borderRadius: g.rad + 'px'}
+      {transform: `translate3d(0,${lbDrag.dy}px,0) rotate(0deg) scale(${lbDrag.sc})`, opacity: 1, clipPath: `inset(0px round ${r0}px)`, borderRadius: r0 + 'px'},
+      {transform: `translate3d(${dx}px,${dy}px,0) rotate(${pose.rot}deg) scale(${g.s})`, opacity: 1, clipPath: g.clip, borderRadius: g.rad + 'px'}
     ], {duration: 380, easing: lbEase, fill: 'forwards'});
     anim.onfinish = () => { if (tok === lbTok) lbShowSrc(); };
   } else {
@@ -603,4 +617,3 @@ document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   escClose();
 });
-
