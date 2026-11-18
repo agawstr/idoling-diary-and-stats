@@ -475,20 +475,36 @@ function lbThumbPose(src) {
   const cs = getComputedStyle(src);
   return {rot: Math.atan2(m.b, m.a) * 180 / Math.PI, w: parseFloat(cs.width) * Math.hypot(m.a, m.b), h: parseFloat(cs.height) * Math.hypot(m.c, m.d)};
 }
+// Radius sudut (kiri-atas, kanan-atas, kanan-bawah, kiri-bawah; px) yang TERLIHAT pada thumbnail. Tidak selalu ada di <img> sendiri: di modal kursi
+// img punya border-radius:0 dan pembulatannya dikerjakan pembungkus .hi-ph (overflow:hidden, 12px). Dulu hanya radius <img> yang dibaca, jadi foto
+// mendarat dengan sudut KOTAK lalu berganti bulat begitu overlay dilepas. Sekarang dicari elemen terdekat yang memotong gambar dengan ukuran yang sama.
+function lbThumbRadii(src) {
+  const radii = e => { const c = getComputedStyle(e), w = e.getBoundingClientRect().width || 1;
+    return [c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].map(v => v.endsWith('%') ? parseFloat(v) / 100 * w : parseFloat(v) || 0); };
+  const own = radii(src); if (own.some(v => v > 0)) return own;
+  const sr = src.getBoundingClientRect();
+  for (let e = src.parentElement; e && e !== document.body; e = e.parentElement) {
+    if (getComputedStyle(e).overflow === 'visible') continue; // hanya induk yang benar-benar memotong gambar
+    const er = e.getBoundingClientRect();
+    if (Math.abs(er.width - sr.width) > 2 || Math.abs(er.height - sr.height) > 2) break; // induk lebih besar dari foto: sudut foto bukan miliknya
+    const v = radii(e); if (v.some(x => x > 0)) return v;
+  }
+  return [0, 0, 0, 0];
+}
 // Geometri "mendarat" foto yang terbang pulang: meniru cara thumbnail menampilkan foto (object-fit + object-position + radius),
 // supaya foto tidak lebih tinggi/lebar dari thumbnail lalu melompat saat overlay dilepas. Semua ukuran dalam px kotak foto besar (sebelum skala).
 function lbLandGeom(lb, src, tw, th, bw, bh) {
   const ba = bw / bh, na = lb.naturalWidth && lb.naturalHeight ? lb.naturalWidth / lb.naturalHeight : ba;
   const cw = na > ba ? bw : bh * na, ch = na > ba ? bw / na : bh; // area foto sebenarnya di dalam kotak (object-fit: contain)
-  const cs = getComputedStyle(src), rad0 = parseFloat(cs.borderTopLeftRadius) || 0;
+  const cs = getComputedStyle(src), radii = lbThumbRadii(src), rad = s => radii.map(v => v / s).join('px ') + 'px'; // radius dibagi skala: foto besar diperkecil ke thumbnail
   if (cs.objectFit !== 'cover') { // thumbnail menampilkan seluruh foto: cukup skala pas, tanpa potong
     const s = Math.min(tw / cw, th / ch);
-    return {s, clip: `inset(0px round ${rad0 / s}px)`, rad: rad0 / s, u0: 0, v0: 0};
+    return {s, clip: `inset(0px round ${rad(s)})`, rad: rad(s), u0: 0, v0: 0};
   }
   const pos = cs.objectPosition.split(' ').map(v => v.endsWith('%') ? parseFloat(v) / 100 : .5), px = isNaN(pos[0]) ? .5 : pos[0], py = isNaN(pos[1]) ? .5 : pos[1];
   const s = Math.max(tw / cw, th / ch), vw = tw / s, vh = th / s; // bagian foto yang tampak di thumbnail
   const L = (bw - cw) / 2 + (cw - vw) * px, T = (bh - ch) / 2 + (ch - vh) * py;
-  return {s, clip: `inset(${T}px ${bw - L - vw}px ${bh - T - vh}px ${L}px round ${rad0 / s}px)`, rad: rad0 / s, u0: L + vw / 2 - bw / 2, v0: T + vh / 2 - bh / 2};
+  return {s, clip: `inset(${T}px ${bw - L - vw}px ${bh - T - vh}px ${L}px round ${rad(s)})`, rad: rad(s), u0: L + vw / 2 - bw / 2, v0: T + vh / 2 - bh / 2};
 }
 function closeLightbox() { // foto "terbang" kembali ke thumbnail asalnya; kalau thumbnail tak terlihat: mengecil + memudar
   if (!lbRoot.classList.contains('open') || lbRoot.classList.contains('closing')) return;
@@ -518,7 +534,7 @@ function closeLightbox() { // foto "terbang" kembali ke thumbnail asalnya; kalau
     const dx = r.left + r.width / 2 - bcx - g.s * (g.u0 * ca - g.v0 * sa), dy = r.top + r.height / 2 - bcy - g.s * (g.u0 * sa + g.v0 * ca);
     anim = lb.animate([
       {transform: startT, opacity: startO, clipPath: `inset(0px round ${r0}px)`, borderRadius: r0 + 'px'},
-      {transform: `translate3d(${dx}px,${dy}px,0) rotate(${pose.rot}deg) scale(${g.s})`, opacity: 1, clipPath: g.clip, borderRadius: g.rad + 'px'}
+      {transform: `translate3d(${dx}px,${dy}px,0) rotate(${pose.rot}deg) scale(${g.s})`, opacity: 1, clipPath: g.clip, borderRadius: g.rad}
     ], {duration: 380, easing: lbEase, fill: 'forwards'});
     anim.onfinish = () => { if (tok === lbTok) lbShowSrc(); };
   } else {
