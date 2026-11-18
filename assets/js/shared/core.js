@@ -379,7 +379,7 @@ document.addEventListener('click', e => {
   const im = e.target.closest('img[data-photo]');
   if (im) openLightbox(im);
 });
-let lbTok = 0, lbSrc = null, lbDrag = {dy: 0, sc: 1}, lbMoved = false, lbList = [], lbIdx = 0;
+let lbTok = 0, lbSrc = null, lbDrag = {dy: 0, sc: 1}, lbMoved = false, lbList = [], lbIdx = 0, lbRelease = null;
 const lbRoot = $('lightbox'), lbEase = 'cubic-bezier(.32,.72,0,1)';
 lbRoot.insertAdjacentHTML('beforeend', `<button type="button" class="lb-x" id="lb-x" aria-label="Tutup foto">&times;</button>
   <button type="button" class="lb-nav lb-prev" id="lb-prev" aria-label="Foto sebelumnya"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
@@ -453,6 +453,18 @@ function lbGo(d) { // ganti ke foto sebelumnya (-1) / berikutnya (+1) di grup ya
 // Rotasi & skala yang menempel pada thumbnail lewat elemen induknya (mis. polaroid figure.gi yang dimiringkan -1,8°..+1,8°).
 // getBoundingClientRect() pada elemen miring mengembalikan kotak pembatas yang LEBIH BESAR dari bentuk aslinya, jadi ukuran dan sudut
 // asli diambil dari komposisi transform induk (bagian linear saja; titik pusat kotak pembatas tetap sama dengan pusat elemen).
+// Bekukan pose thumbnail (dan elemen induk yang punya transform, mis. kartu polaroid) selama foto terbang pulang. Di layar sentuh kartu yang baru diketuk
+// memegang status :hover (diputar ke --t penuh) dan begitu lightbox diketuk/ditutup ia bertransisi 350 ms kembali ke pose diamnya, bersamaan dengan
+// foto yang terbang; foto mendarat di pose saat penutupan dimulai sedangkan kartunya berakhir di pose lain (meleset sampai ±2°). Dibekukan, kartu
+// diam selama penerbangan; dilepas bersamaan dengan overlay sehingga ia mengalir halus ke pose alaminya setelah foto hilang.
+function lbFreezePose(src) {
+  const held = [];
+  for (let e = src; e && e !== document.body; e = e.parentElement) {
+    const t = getComputedStyle(e).transform;
+    if (t && t !== 'none') { held.push([e, e.style.transform, e.style.transition]); e.style.transition = 'none'; e.style.transform = t; }
+  }
+  return () => held.forEach(([e, tf, tr]) => { e.style.transform = tf; e.style.transition = tr; });
+}
 function lbThumbPose(src) {
   const chain = []; for (let e = src; e && e !== document.documentElement; e = e.parentElement) chain.push(e);
   let m = new DOMMatrix();
@@ -481,29 +493,36 @@ function lbLandGeom(lb, src, tw, th, bw, bh) {
 function closeLightbox() { // foto "terbang" kembali ke thumbnail asalnya; kalau thumbnail tak terlihat: mengecil + memudar
   if (!lbRoot.classList.contains('open') || lbRoot.classList.contains('closing')) return;
   const lb = $('lb-img'), src = lbSrc, tok = ++lbTok;
+  if (lbRelease) { lbRelease(); lbRelease = null; } // penutupan sebelumnya yang belum dilepas
+  const release = !calm() && src && src.isConnected ? lbFreezePose(src) : null;
+  if (release) { lbRelease = release; setTimeout(() => { if (lbRelease === release) { release(); lbRelease = null; } }, Math.round(520 * SPD) + 30); } // bersamaan dengan overlay lepas (closeEl)
   const r = src && src.isConnected ? src.getBoundingClientRect() : null;
   const vis = r && r.width > 4 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
   const cur = lb.getBoundingClientRect(); // posisi sekarang, termasuk geseran jari
+  // Keadaan visual SEKARANG (dibaca sebelum apa pun dibatalkan): bisa sedang di tengah animasi membuka (560 ms) atau digeser jari.
+  // Dulu penutupan selalu dimulai dari "ukuran penuh" dan ukuran kotak ditebak dari cur / lbDrag.sc, jadi kalau Back ditekan sebelum
+  // animasi membuka selesai, foto melompat ke layar penuh lalu mendarat meleset (sampai 149 px).
+  const csNow = getComputedStyle(lb), startT = csNow.transform, startO = +csNow.opacity;
   const under = ovOpen().filter(o => o !== lbRoot).pop(); // fokus kembali ke kartu di bawahnya (mis. kartu member), bukan ke halaman
   lastFocus.lightbox = under && under.querySelector('.x') || lastFocus.lightbox;
   closeEl('lightbox'); // latar memudar lewat kelas .closing
   if (calm() || !cur.width) { lbShowSrc(); return; }
-  const fromT = `translate3d(0,${lbDrag.dy}px,0) scale(${lbDrag.sc})`;
   lb.getAnimations().forEach(a => a.cancel());
   lb.style.animation = 'none'; lb.style.transform = '';
   let anim;
   if (vis) {
-    const bw = cur.width / lbDrag.sc, bh = cur.height / lbDrag.sc, bcx = cur.left + cur.width / 2, bcy = cur.top + cur.height / 2 - lbDrag.dy;
+    const rest = lb.getBoundingClientRect(); // kotak layout asli (animasi dibatalkan, transform dikosongkan): ukuran & pusat pasti, apa pun yang sedang terjadi
+    const bw = rest.width, bh = rest.height, bcx = rest.left + rest.width / 2, bcy = rest.top + rest.height / 2;
     const pose = lbThumbPose(src), g = lbLandGeom(lb, src, pose.w || r.width, pose.h || r.height, bw, bh), r0 = parseFloat(getComputedStyle(lb).borderTopLeftRadius) || 0;
     const a = pose.rot * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a); // pusat area foto yang terlihat ikut berputar bersama kartu
     const dx = r.left + r.width / 2 - bcx - g.s * (g.u0 * ca - g.v0 * sa), dy = r.top + r.height / 2 - bcy - g.s * (g.u0 * sa + g.v0 * ca);
     anim = lb.animate([
-      {transform: `translate3d(0,${lbDrag.dy}px,0) rotate(0deg) scale(${lbDrag.sc})`, opacity: 1, clipPath: `inset(0px round ${r0}px)`, borderRadius: r0 + 'px'},
+      {transform: startT, opacity: startO, clipPath: `inset(0px round ${r0}px)`, borderRadius: r0 + 'px'},
       {transform: `translate3d(${dx}px,${dy}px,0) rotate(${pose.rot}deg) scale(${g.s})`, opacity: 1, clipPath: g.clip, borderRadius: g.rad + 'px'}
     ], {duration: 380, easing: lbEase, fill: 'forwards'});
     anim.onfinish = () => { if (tok === lbTok) lbShowSrc(); };
   } else {
-    anim = lb.animate([{transform: fromT, opacity: 1}, {transform: `translate3d(0,${lbDrag.dy + 28}px,0) scale(${lbDrag.sc * .92})`, opacity: 0}], {duration: 280, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});
+    anim = lb.animate([{transform: startT, opacity: startO}, {transform: `translate3d(0,${lbDrag.dy + 28}px,0) scale(${lbDrag.sc * .92})`, opacity: 0}], {duration: 280, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'});
     lbShowSrc();
   }
 }
