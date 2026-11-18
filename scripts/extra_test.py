@@ -235,7 +235,9 @@ with sync_playwright() as p:
       const cx = rc.left + rc.width / 2 + (M.a * ox + M.c * oy), cy = rc.top + rc.height / 2 + (M.b * ox + M.d * oy);
       const gi = th.closest('.gi'), G = gi ? new DOMMatrix(getComputedStyle(gi).transform) : new DOMMatrix(), tcs = getComputedStyle(th), tr = th.getBoundingClientRect();
       const tw = parseFloat(tcs.width) * Math.hypot(G.a, G.b), tH = parseFloat(tcs.height) * Math.hypot(G.c, G.d);
-      return {grow, gang: deg(G), dAng: Math.abs(ang - deg(G)), dW: Math.abs(vw - tw), dH: Math.abs(vh - tH), bbox: [rc.width, tr.width],
+      const rm = /round ([^)]*)\\)/.exec(cs.clipPath), rv = rm ? rm[1].trim().split(/\\s+/).map(parseFloat) : [0];
+      const radPx = rv[0] * sx, ownR = parseFloat(tcs.borderTopLeftRadius) || 0, radExp = (ownR > 0 ? ownR : parseFloat(getComputedStyle(th.parentElement).borderTopLeftRadius) || 0) * Math.hypot(G.a, G.b);
+      return {grow, radPx, radExp, dRad: Math.abs(radPx - radExp), gang: deg(G), dAng: Math.abs(ang - deg(G)), dW: Math.abs(vw - tw), dH: Math.abs(vh - tH), bbox: [rc.width, tr.width],
               dC: Math.hypot(cx - (tr.left + tr.width / 2), cy - (tr.top + tr.height / 2)),
               chrome: Math.max(+getComputedStyle(q('lb-x')).opacity, +getComputedStyle(q('lb-cap')).opacity, +getComputedStyle(q('lb-next')).opacity),
               stillOpen: getComputedStyle(root).display !== 'none'}; }"""
@@ -269,6 +271,23 @@ with sync_playwright() as p:
     pg.wait_for_timeout(1300)
     left = pg.evaluate("(() => { const g = document.querySelector('#gallery .gi'); const t0 = window.__t0; g.style.setProperty('--t', t0); return g.style.transform + '|' + g.style.transition; })()")
     check(left == "|", f"pembekuan dilepas setelah overlay hilang: transform/transition inline kartu kembali kosong (hasil {left!r})")
+    # Foto di dalam modal kursi: img punya border-radius:0, pembulatan 12px dikerjakan pembungkus .hi-ph (overflow:hidden). Dulu foto mendarat dengan
+    # sudut KOTAK lalu berganti bulat begitu overlay dilepas.
+    pg.click(".tab[data-tab=tl]"); pg.wait_for_timeout(900)
+    found = False
+    for i in range(min(pg.evaluate("document.querySelectorAll('.tl-s').length"), 40)):
+        pg.evaluate(f"document.querySelectorAll('.tl-s')[{i}].click()"); pg.wait_for_timeout(900)
+        if pg.evaluate("!!document.querySelector('#seat-modal img[data-photo]')"): found = True; break
+        pg.evaluate("escClose()"); pg.wait_for_timeout(500)
+    check(found, "ada show berfoto untuk menguji lightbox dari modal kursi")
+    if found:
+        pg.evaluate("document.querySelector('#seat-modal img[data-photo]').click()"); pg.wait_for_timeout(1500)
+        r = pg.evaluate(LB_CLOSE, "back")
+        check(r["radExp"] > 5, f"modal kursi: thumbnail memang berbingkai bulat lewat pembungkusnya ({r['radExp']:.1f}px), jadi tes ini menguji pembulatan")
+        check(r["dRad"] < 0.6, f"modal kursi: foto mendarat dengan sudut bulat yang sama dengan thumbnail, bukan kotak (radius {r['radPx']:.1f}px vs {r['radExp']:.1f}px)")
+        check(r["dW"] < 1.5 and r["dH"] < 1.5 and r["dC"] < 1.5, f"modal kursi: foto mendarat pas di thumbnail (ukuran {r['dW']:.1f}×{r['dH']:.1f}px, pusat {r['dC']:.1f}px)")
+        pg.evaluate("escClose()"); pg.wait_for_timeout(1000)
+    pg.click(".tab[data-tab=gal]"); pg.wait_for_timeout(1200)
     # buka lagi setelah menutup: kontrol harus kembali terlihat dan tidak ada sisa clip-path dari animasi tutup
     pg.evaluate("document.querySelectorAll('#gallery img[data-photo]')[1].click()"); pg.wait_for_timeout(1500)
     again = pg.evaluate("({clip: getComputedStyle(document.getElementById('lb-img')).clipPath, x: +getComputedStyle(document.getElementById('lb-x')).opacity, cap: +getComputedStyle(document.getElementById('lb-cap')).opacity})")
