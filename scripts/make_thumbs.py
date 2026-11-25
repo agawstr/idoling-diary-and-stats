@@ -28,13 +28,9 @@ def make(src: Path, dst: Path):
         im = ImageOps.exif_transpose(im)  # hormati rotasi dari kamera/HP
         if im.width > WIDTH:
             im = im.resize((WIDTH, round(im.height * WIDTH / im.width)), Image.LANCZOS)
-        ext = src.suffix.lower()
-        if ext in (".jpg", ".jpeg"):
-            im.convert("RGB").save(dst, "JPEG", quality=QUALITY, optimize=True, progressive=True)
-        elif ext == ".png":
-            im.save(dst, "PNG", optimize=True)
-        else:
-            im.save(dst, "WEBP", quality=QUALITY)
+        if im.mode not in ("RGB", "RGBA"):
+            im = im.convert("RGB")
+        im.save(dst, "WEBP", quality=QUALITY, method=6)
 
 
 def main():
@@ -44,7 +40,7 @@ def main():
         return 0
     OUT.mkdir(exist_ok=True)
 
-    sources = {p.name: p for p in SRC.iterdir() if p.is_file() and p.suffix.lower() in EXTS}
+    sources = {p.stem + ".webp": p for p in SRC.iterdir() if p.is_file() and p.suffix.lower() in EXTS}
     made = skipped = failed = 0
     for name, src in sorted(sources.items()):
         dst = OUT / name

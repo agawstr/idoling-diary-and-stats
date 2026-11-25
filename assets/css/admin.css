@@ -69,6 +69,8 @@ td{padding:12px 10px;border-bottom:1px solid #24151d;color:#e4e4e7}
 .act{padding:6px 12px;border-radius:9999px;border:1px solid transparent;font-size:12px;font-weight:700;cursor:pointer;margin-right:4px;color:#fff}
 .edit{background:rgba(59,130,246,.2);border-color:rgba(96,165,250,.45);color:#93c5fd}
 .edit:hover{background:rgba(59,130,246,.34);color:#fff}
+.dup{background:rgba(255,140,0,.18);border-color:rgba(255,170,60,.45);color:#ffd9b0}
+.dup:hover{background:rgba(255,140,0,.32);color:#fff}
 .del{background:rgba(239,68,68,.2);border-color:rgba(248,113,113,.45);color:#fca5a5}
 .del:hover{background:rgba(239,68,68,.34);color:#fff}
 .thumb{display:block;width:44px;height:44px;object-fit:cover;border-radius:6px;margin-top:6px;cursor:zoom-in;border:1px solid #3d222e}
@@ -350,7 +352,7 @@ body.adm tr.flash{animation:rowflash 2s ease-out}
   body.adm td:nth-child(3){color:#a1a1aa;font-size:12.5px}
   body.adm td:nth-child(4)::before,body.adm td:nth-child(5)::before,body.adm td:nth-child(6)::before{content:attr(data-l);display:block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#a1a1aa;margin-bottom:2px}
   body.adm td.nil{display:none}
-  body.adm td:nth-child(7){grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+  body.adm td:nth-child(7){grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
   body.adm .act{min-height:44px;margin:0;font-size:14px;border-radius:10px}
   /* lencana "Tersimpan" bawaan: pindah ke atas supaya tidak menutupi tab bar (gaya bawaannya inline, jadi perlu !important) */
   #stor-badge{top:calc(env(safe-area-inset-top,0px) + 10px)!important;bottom:auto!important}

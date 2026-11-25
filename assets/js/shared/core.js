@@ -129,7 +129,7 @@ const normSeat = s => {
 };
 const okPhoto = p => typeof p === 'string' && (p.startsWith('data:image/') || /^https?:\/\//i.test(p) || /^photos\/[\w.-]+$/.test(p)); // data URL, URL, atau file di folder photos/
 // foto penuh: photos/X.jpg, versi kecil (untuk galeri/modal): photos/t/X.jpg; kalau thumbnail belum ada, otomatis memakai foto penuh
-const thumbOf = p => /^photos\/[\w.-]+$/.test(p) ? p.replace('photos/', 'photos/t/') : p;
+const thumbOf = p => /^photos\/[\w.-]+$/.test(p) ? p.replace(/^photos\//, 'photos/t/').replace(/\.[^.]+$/, '.webp') : p;
 const KINDS = [
   {k:'ts', q:'2-Shot?', name:'2-Shot', icon:'', f:'twoshot', t:'tsType', m:'member', p:'photo',
    types:[['birthday','Birthday 2-Shot'],['roulette','2-Shot Roulette']], short:{birthday:'Birthday 2-Shot', roulette:'2-Shot'}},

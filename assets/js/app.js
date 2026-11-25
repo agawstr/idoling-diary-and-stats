@@ -13,6 +13,7 @@
   const toast = document.body.appendChild(Object.assign(document.createElement('div'), {id: 'toast', role: 'status'}));
   let toastT = 0;
   const say = msg => { toast.textContent = msg; toast.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toast.classList.remove('on'), 2400); };
+  window.say = say;
 
   /* ---------- header kecil (HP): muncul saat judul besar sudah lewat ---------- */
   const bar = document.body.appendChild(Object.assign(document.createElement('div'), {id: 'appbar'}));

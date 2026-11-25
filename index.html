@@ -123,10 +123,22 @@ function applyData(json) {
   $('foot').textContent = json.updated ? 'Data diperbarui: ' + fmtDate(json.updated) : '';
 }
 // layar muat 2-bit (assets/js/splash.js): selalu tampil; menutup setelah data, semua tab, dan foto pertama galeri siap
-let tabOpened = false;
+let tabOpened = false, urlApplied = false;
+function applyUrlParams() {
+  if (urlApplied || !dataLoaded) return;
+  urlApplied = true;
+  const q = new URLSearchParams(location.search);
+  const sl = q.get('setlist'), mb = q.get('member'), st = normSeat(q.get('seat'));
+  let changed = false;
+  if (sl) { filter.setlist = sl; if ($('f-setlist')) $('f-setlist').value = sl; changed = true; }
+  if (mb) { filter.member = mb; if ($('f-member')) $('f-member').value = mb; changed = true; }
+  if (changed) renderChart();
+  if (st && SEATS.has(st) && typeof openSeat === 'function') setTimeout(() => openSeat(st), 120);
+}
 if (window.Splash) Splash.beforeClose = () => {
   document.documentElement.classList.add('ready');
   if (START_TAB && !tabOpened && window.switchTab) { tabOpened = true; switchTab(START_TAB); } // ?tab= (shortcut ikon PWA)
+  applyUrlParams();
 };
 setTimeout(() => document.documentElement.classList.add('ready'), 7000); // jaga-jaga kalau splash.js gagal dimuat
 // siapkan semua tab selagi layar muat tampil, supaya pindah tab nanti langsung jadi
@@ -156,6 +168,7 @@ async function init() {
     if (text !== old) { // hanya render ulang kalau data berubah
       applyData(JSON.parse(text)); $('status').textContent = ''; renderChart();
       try { localStorage.setItem(CK, text); } catch (e) { /* penyimpanan penuh: abaikan */ }
+      if (old && window.say) say('Data terbaru dimuat');
     }
     $('status').classList.remove('warn');
   } catch (err) {

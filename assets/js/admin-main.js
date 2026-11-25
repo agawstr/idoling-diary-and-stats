@@ -120,6 +120,7 @@ function renderTable() {
       <td data-l="2-Shot / Chekicha"${extras(r).length ? '' : ' class="nil"'}>${exCell(r)}</td>
       <td data-l="Aksi">
         <button class="act edit" data-act="edit" data-id="${r.id}">Edit</button>
+        <button class="act dup" data-act="dup" data-id="${r.id}" title="Salin ke form sebagai data baru">Duplikat</button>
         <button class="act del" data-act="del" data-id="${r.id}">Hapus</button>
       </td>
     </tr>`).join('')
@@ -560,6 +561,8 @@ $('form').addEventListener('submit', async e => {
       synced = differ.length;
     }
   }
+  const knownBefore = records.length ? new Set(knownMembers().map(n => n.toLowerCase())) : null;
+  const freshNames = knownBefore ? [...new Set([...lineup, ...KINDS.filter(K => ex[K.f] === 'Ya').map(K => ex[K.m])].filter(n => n && !knownBefore.has(n.toLowerCase())))] : [];
   const prevCopy = id ? JSON.parse(JSON.stringify(records.find(r => r.id === id) || null)) : null; // keadaan sebelum diedit (untuk Urungkan)
   if (id) {
     const i = records.findIndex(r => r.id === id);
@@ -571,7 +574,7 @@ $('form').addEventListener('submit', async e => {
   if (keep && !id) $('f-seat').focus();
   focusId = rec.id; // baris ini menyala sebentar & halamannya dibuka
   renderAll();
-  toast((id ? 'Diperbarui: ' : 'Tersimpan: ') + rec.seat + ' · ' + rec.setlist + (addedLu.length ? ' · masuk lineup: ' + addedLu.join(', ') : '') + (synced ? ' · lineup disamakan ke ' + synced + ' kursi lain' : ''),
+  toast((id ? 'Diperbarui: ' : 'Tersimpan: ') + rec.seat + ' · ' + rec.setlist + (addedLu.length ? ' · masuk lineup: ' + addedLu.join(', ') : '') + (synced ? ' · lineup disamakan ke ' + synced + ' kursi lain' : '') + (freshNames.length ? ' · nama baru (cek ejaan): ' + freshNames.slice(0, 2).join(', ') + (freshNames.length > 2 ? '…' : '') : ''),
     prevCopy
       ? {label: 'Urungkan', fn: () => { // kembalikan data & lineup kursi lain yang ikut disamakan
         const i = records.findIndex(r => r.id === prevCopy.id);
@@ -623,6 +626,16 @@ $('tbody').addEventListener('click', async e => {
     $('btn-again').style.display = 'none';
     setMsg('');
     $('form').scrollIntoView({ behavior: 'smooth' });
+  } else if (btn.dataset.act === 'dup') {
+    resetForm();
+    $('f-setlist').value = rec.setlist;
+    $('f-sesi').value = rec.sesi;
+    $('f-harga').value = rec.harga || '';
+    $('f-tiket').value = rec.tiket || '';
+    lineup = [...(rec.lineup || [])]; $('lu-in').value = ''; renderLineup();
+    $('form').scrollIntoView({ behavior: 'smooth' });
+    $('f-seat').focus({ preventScroll: true });
+    toast('Disalin dari ' + rec.setlist + ' — isi kursi & tanggal');
   } else {
     const at = records.findIndex(r => r.id === id);
     records = records.filter(r => r.id !== id);
