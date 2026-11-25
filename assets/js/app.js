@@ -524,8 +524,7 @@
     let top;
     if (side) { const hd = document.querySelector('.head'); top = hd.getBoundingClientRect().bottom + scrollY - 8; }
     else {
-      const pr = document.createElement('i'); pr.style.cssText = 'position:fixed;top:var(--stick);left:0;width:0;height:0;visibility:hidden';
-      document.body.appendChild(pr); const stick = pr.getBoundingClientRect().top; pr.remove();
+      const stick = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stick')) || 64;
       top = next.getBoundingClientRect().top + scrollY - stick - 12;
     }
     if (scrollY > top) scrollTo({top: Math.max(0, top), behavior: 'instant'});

@@ -51,7 +51,7 @@ const perf = (() => {
 // 1 = kecepatan lama, 1.35 = lebih pelan. Uji cepat: ?speed=1.6 (tersimpan di perangkat ini; ?speed=1 untuk mengembalikan).
 // Durasi < 250ms (umpan balik sentuhan / gestur) tidak diubah supaya tetap responsif.
 const ANIM_SLOW = (() => {
-  let v = 1.35;
+  let v = PRICES_VISIBLE ? 0.85 : 1;
   try {
     const q = parseFloat(new URLSearchParams(location.search).get('speed'));
     if (q > 0 && q <= 4) localStorage.setItem('jkt48_speed', String(q));

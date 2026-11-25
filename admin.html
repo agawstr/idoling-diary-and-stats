@@ -9,7 +9,8 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap"></noscript>
 <link rel="stylesheet" href="assets/css/shared.css">
 <link rel="stylesheet" href="assets/css/admin.css">
 <link rel="stylesheet" href="assets/css/liquid.css">
@@ -55,16 +56,20 @@
         <h3 id="form-title">Tambah Riwayat Show</h3>
         <form id="form" novalidate>
           <input type="hidden" id="f-id">
-          <div class="fg"><label for="f-seat">Nomor Kursi</label>
-            <input id="f-seat" placeholder="A-19 (A19 juga boleh)" style="text-transform:uppercase" autocomplete="off"></div>
+          <div class="fg-row">
+            <div class="fg"><label for="f-seat">Nomor Kursi</label>
+              <input id="f-seat" placeholder="A-19 (A19 juga boleh)" style="text-transform:uppercase" autocomplete="off"></div>
+            <div class="fg"><label for="f-date">Tanggal Show</label>
+              <input type="date" id="f-date"></div>
+          </div>
           <div class="fg"><label for="f-setlist">Setlist / Event</label>
             <input id="f-setlist" list="dl-setlist" placeholder="Pajama Drive" autocomplete="off"><datalist id="dl-setlist"></datalist><datalist id="dl-member"></datalist></div>
-          <div class="fg"><label for="f-date">Tanggal Show</label>
-            <input type="date" id="f-date"></div>
-          <div class="fg"><label for="f-sesi">Sesi</label>
-            <select id="f-sesi"><option value="">-</option><option value="Siang">Siang</option><option value="Malam">Malam</option></select></div>
-          <div class="fg"><label for="f-harga">Harga tiket (Rp, opsional)</label>
-            <input id="f-harga" type="number" min="0" step="1000" inputmode="numeric" placeholder="150000"></div>
+          <div class="fg-row">
+            <div class="fg"><label for="f-sesi">Sesi</label>
+              <select id="f-sesi"><option value="">-</option><option value="Siang">Siang</option><option value="Malam">Malam</option></select></div>
+            <div class="fg"><label for="f-harga">Harga tiket (Rp)</label>
+              <input id="f-harga" type="number" min="0" step="1000" inputmode="numeric" placeholder="150000"></div>
+          </div>
           <div class="fg"><label for="f-tiket">Jenis tiket (opsional)</label>
             <input id="f-tiket" list="dl-tiket" placeholder="Reguler / Lotre / Roulette" autocomplete="off">
             <datalist id="dl-tiket"><option value="Reguler"><option value="Lotre"><option value="Roulette"><option value="Birthday"><option value="Lainnya"></datalist></div>
@@ -101,16 +106,19 @@
         <div class="tools">
           <button class="btn" id="btn-zip">Unduh paket (ZIP)</button>
           <button class="btn" id="btn-export">Backup lengkap (JSON)</button>
-          <div class="pubopt"><b>Opsi publikasi (untuk paket ZIP)</b>
-            <label><input type="checkbox" id="po-tickets" checked> Sertakan data tiket (lotre, meet &amp; greet, event)</label>
-            <label><input type="checkbox" id="po-photos" checked> Sertakan foto</label>
-            <label><input type="checkbox" id="po-mask"> Samarkan nama member (jadi inisial, mis. A.R.)</label>
-            <label><input type="checkbox" id="po-blur" checked> Sembunyikan jumlah tiket VC &amp; MnG di data publik (angka asli tetap di admin)</label>
-            <small>Repo publik: isi data.json dan folder photos/ bisa dilihat siapa saja. Backup lengkap tidak terpengaruh opsi ini.</small></div>
           <button class="btn" id="btn-import">Restore (JSON)</button>
           <button class="btn" id="btn-jk">Impor dari jkt48.com</button>
           <button class="btn" id="btn-cat">Kategori &amp; status tiket</button>
           <input type="file" id="file-import" accept=".json,application/json" hidden>
+          <details class="pubopt"><summary>Opsi publikasi (untuk paket ZIP)</summary>
+            <div class="pubopt-b">
+              <label><input type="checkbox" id="po-tickets" checked> Sertakan data tiket (lotre, meet &amp; greet, event)</label>
+              <label><input type="checkbox" id="po-photos" checked> Sertakan foto</label>
+              <label><input type="checkbox" id="po-mask"> Samarkan nama member (jadi inisial, mis. A.R.)</label>
+              <label><input type="checkbox" id="po-blur" checked> Sembunyikan jumlah tiket VC &amp; MnG di data publik (angka asli tetap di admin)</label>
+              <small>Repo publik: isi data.json dan folder photos/ bisa dilihat siapa saja. Backup lengkap tidak terpengaruh opsi ini.</small>
+            </div>
+          </details>
         </div>
         <div id="todo"></div>
         <div id="backup-note"></div>

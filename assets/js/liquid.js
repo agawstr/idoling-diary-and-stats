@@ -15,17 +15,20 @@
   /* ---------- 1. kilau kursor ---------- */
   if (matchMedia('(hover:hover) and (pointer:fine)').matches && !calm()) {
     const SEL = '.stat,.last-c,.tl-i,.ev-g,.ev-c,.btn-s,.badge,.gk,.tabbar,.modal,.card';
-    let raf = 0, ev = null;
+    let raf = 0, ev = null, lastEl = null, lastRect = null;
+    const clearRect = () => { lastEl = null; lastRect = null; };
+    addEventListener('scroll', clearRect, {passive: true, capture: true});
+    addEventListener('resize', clearRect, {passive: true});
     addEventListener('pointermove', e => {
       ev = e;
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
         const el = ev.target.closest && ev.target.closest(SEL);
-        if (!el) return;
-        const r = el.getBoundingClientRect();
-        el.style.setProperty('--mx', (ev.clientX - r.left) + 'px');
-        el.style.setProperty('--my', (ev.clientY - r.top) + 'px');
+        if (!el) { clearRect(); return; }
+        if (el !== lastEl || !lastRect) { lastEl = el; lastRect = el.getBoundingClientRect(); }
+        el.style.setProperty('--mx', (ev.clientX - lastRect.left) + 'px');
+        el.style.setProperty('--my', (ev.clientY - lastRect.top) + 'px');
       });
     }, {passive: true});
   }
