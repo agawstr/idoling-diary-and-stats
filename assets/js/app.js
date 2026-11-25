@@ -251,6 +251,13 @@
       if (seatOv.classList.contains('docked')) seatOv.scrollIntoView({block: 'nearest', behavior: calm() ? 'auto' : 'smooth'});
     };
   }
+  $('seat-link')?.addEventListener('click', () => {
+    const code = $('modal-seat')?.textContent?.trim();
+    if (!code) return;
+    const u = new URL(location.href);
+    u.search = '?seat=' + encodeURIComponent(code);
+    navigator.clipboard?.writeText(u.toString()).then(() => say('Link kursi ' + code + ' disalin'), () => say('Gagal menyalin link'));
+  });
 
   /* ---------- kilau kaca mengikuti jari / kursor (hanya tab bar & pil filter, hanya saat kaca aktif) ----------
      Yang berubah hanya dua variabel CSS per frame di elemen kecil; tidak ada layout, tidak ada blur yang dianimasikan. */

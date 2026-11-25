@@ -10,10 +10,10 @@
    - admin.html & request non-GET: tidak disentuh
    Naikkan VERSION kalau daftar SHELL berubah (cache shell lama dihapus). Cache foto/font/data sengaja TIDAK ikut VERSION:
    foto tidak berubah antar rilis kode, jadi pengunjung tidak perlu mengunduh ulang ~3,6 MB tiap rilis. */
-const VERSION = 'v22';
+const VERSION = 'v23';
 const NET_TIMEOUT = 3500; // ms: lebih lambat dari ini dan sudah ada salinan -> pakai salinan, jaringan tetap memperbarui cache di belakang
 const SHELL_CACHE = 'shell-' + VERSION;
-const PHOTO_CACHE = 'photos-v1'; // nama file foto unik (id/timestamp); naikkan angka ini hanya bila skema foto berubah
+const PHOTO_CACHE = 'photos-v2'; // nama file foto unik (id/timestamp); naikkan angka ini hanya bila skema foto berubah
 const FONT_CACHE = 'fonts-v1';
 const DATA_CACHE = 'data-v1';
 const KEEP = [SHELL_CACHE, PHOTO_CACHE, FONT_CACHE, DATA_CACHE];

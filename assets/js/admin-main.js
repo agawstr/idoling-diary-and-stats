@@ -26,7 +26,7 @@ const save = () => { try { stor.setItem(KEY, JSON.stringify(records)); bumpDirty
 const DK = KEY + '_backup';
 const bk = () => { try { return JSON.parse(stor.getItem(DK)) || {}; } catch (e) { return {}; } };
 function bumpDirty() { const b = bk(); b.dirty = (b.dirty || 0) + 1; stor.setItem(DK, JSON.stringify(b)); renderBackup(); }
-function markExported() { stor.setItem(DK, JSON.stringify({at: Date.now(), dirty: 0})); renderBackup(); }
+function markExported() { stor.setItem(DK, JSON.stringify({ at: Date.now(), dirty: 0 })); renderBackup(); }
 function renderBackup() {
   const b = bk(), d = b.at ? Math.floor((Date.now() - b.at) / 864e5) : null, el = $('backup-note');
   const parts = [];
@@ -78,8 +78,8 @@ function askInline(msg) {
     $('sync-msg').textContent = msg;
     bn.hidden = false;
     others.forEach(c => { c.inert = true; });
-    bn.scrollIntoView({block: 'center', behavior: 'smooth'}); // 'center': di HP, bilah simpan & tab bawah menutupi tepi layar
-    $('sync-ok').focus({preventScroll: true});
+    bn.scrollIntoView({ block: 'center', behavior: 'smooth' }); // 'center': di HP, bilah simpan & tab bawah menutupi tepi layar
+    $('sync-ok').focus({ preventScroll: true });
     const done = v => { bn.hidden = true; others.forEach(c => { c.inert = false; }); bn.onkeydown = $('sync-ok').onclick = $('sync-no').onclick = null; res(v); };
     $('sync-ok').onclick = () => done(true); $('sync-no').onclick = () => done(false);
     bn.onkeydown = e => { if (e.key === 'Escape') done(false); };
@@ -125,8 +125,8 @@ function renderTable() {
       </td>
     </tr>`).join('')
     : `<tr class="none"><td colspan="7"><div class="empty">${!records.length
-        ? '<b>Belum ada riwayat</b>Catat show pertama Anda, atau pulihkan dari file backup.<div class="empty-act"><button type="button" class="btn main" data-empty="add">Tambah data pertama</button><button type="button" class="btn" data-empty="restore">Restore backup</button></div>'
-        : `<b>Tidak ada yang cocok</b>${q ? 'Pencarian “' + esc($('search').value.trim()) + '” tidak menemukan data.' : 'Tidak ada data pada filter ini.'}<div class="empty-act"><button type="button" class="btn" data-empty="clear">Hapus pencarian &amp; filter</button></div>`}</div></td></tr>`;
+      ? '<b>Belum ada riwayat</b>Catat show pertama Anda, atau pulihkan dari file backup.<div class="empty-act"><button type="button" class="btn main" data-empty="add">Tambah data pertama</button><button type="button" class="btn" data-empty="restore">Restore backup</button></div>'
+      : `<b>Tidak ada yang cocok</b>${q ? 'Pencarian “' + esc($('search').value.trim()) + '” tidak menemukan data.' : 'Tidak ada data pada filter ini.'}<div class="empty-act"><button type="button" class="btn" data-empty="clear">Hapus pencarian &amp; filter</button></div>`}</div></td></tr>`;
   focusId = 0; // sorotan hanya untuk satu kali gambar
 }
 
@@ -155,7 +155,7 @@ const renderAll = () => { renderChart(); renderTable(); renderLists(); renderTod
     const top = Math.max(0, r.top);
     prev.classList.add('ghost');
     prev.style.cssText = `top:${top}px;left:${r.left}px;width:${r.width}px;height:${Math.max(0, innerHeight - top)}px`;
-    return {el: prev, off: Math.max(0, -r.top)};
+    return { el: prev, off: Math.max(0, -r.top) };
   }
 
   // kurva masuk item: berhenti tepat di posisi akhir (tanpa overshoot), supaya kartu tidak naik/turun sendiri setelah animasi selesai
@@ -176,24 +176,26 @@ const renderAll = () => { renderChart(); renderTable(); renderLists(); renderTod
     for (const el of view.querySelectorAll(sel)) {
       const r = el.getBoundingClientRect();
       if (!r.height || r.bottom < 0 || r.top > innerHeight) continue;
-      items.push({el, top: r.top, left: r.left});
+      items.push({ el, top: r.top, left: r.left });
       if (items.length >= (lite() ? 28 : 40)) break;
     }
     const set = new Set(items.map(it => it.el)); // elemen di dalam elemen yang sudah dianimasikan tidak perlu dobel
     items = items.filter(it => { for (let p = it.el.parentElement; p && p !== view; p = p.parentElement) if (set.has(p)) return false; return true; });
     items.sort((a, b) => a.top - b.top || a.left - b.left);
     const rows = [];
-    items.forEach(it => { const l = rows[rows.length - 1]; if (l && Math.abs(it.top - l.top) < 14) l.items.push(it); else rows.push({top: it.top, items: [it]}); });
+    items.forEach(it => { const l = rows[rows.length - 1]; if (l && Math.abs(it.top - l.top) < 14) l.items.push(it); else rows.push({ top: it.top, items: [it] }); });
     const L = lite(), rowStep = Math.min(L ? 80 : 105, (L ? 600 : 840) / Math.max(1, rows.length)), colStep = L ? 48 : 62, out = [];
     // transform diam elemen = patokan akhir animasi. Kalau elemen sedang dianimasikan CSS (mis. .card 'rise'), transform yang terbaca itu sementara:
     // dipakai sebagai patokan akhir, elemen berhenti di posisi geser lalu melompat saat animasi selesai. Jadi abaikan bila ada animasi berjalan.
     const base0 = new Map(items.map(it => { const t = it.el.getAnimations().length ? 'none' : getComputedStyle(it.el).transform; return [it.el, t && t !== 'none' ? ' ' + t : '']; }));
-    rows.forEach((row, ri) => { const cs = row.items.length > 1 ? Math.min(colStep, rowStep * 0.8 / (row.items.length - 1)) : 0; // baris lebar: kolom terakhir tetap muncul sebelum baris di bawahnya
+    rows.forEach((row, ri) => {
+      const cs = row.items.length > 1 ? Math.min(colStep, rowStep * 0.8 / (row.items.length - 1)) : 0; // baris lebar: kolom terakhir tetap muncul sebelum baris di bawahnya
       row.items.sort((a, b) => a.left - b.left).forEach((it, ci) => {
-      const b = base0.get(it.el);
-      out.push(it.el.animate([{opacity: 0, transform: 'translate3d(0,22px,0) scale(.94)' + b}, {opacity: 1, transform: b ? b.trim() : 'none'}],
-        {duration: L ? 720 : 900, delay: (L ? 50 : 100) + ri * rowStep + ci * cs, easing: POP, fill: 'backwards'}));
-    }); });
+        const b = base0.get(it.el);
+        out.push(it.el.animate([{ opacity: 0, transform: 'translate3d(0,22px,0) scale(.94)' + b }, { opacity: 1, transform: b ? b.trim() : 'none' }],
+          { duration: L ? 720 : 900, delay: (L ? 50 : 100) + ri * rowStep + ci * cs, easing: POP, fill: 'backwards' }));
+      });
+    });
     return out;
   }
 
@@ -205,11 +207,11 @@ const renderAll = () => { renderChart(); renderTable(); renderLists(); renderTod
   }
 
   // animasi keluar tab lama memakai fill:'forwards' (opacity 0). Kalau dibiarkan, efeknya menempel dan tab itu tampil kosong saat dibuka lagi.
-  const unfill = el => { if (el) el.getAnimations().forEach(x => { try { if (x.effect.getTiming().fill === 'forwards') x.cancel(); } catch (e) {} }); };
+  const unfill = el => { if (el) el.getAnimations().forEach(x => { try { if (x.effect.getTiming().fill === 'forwards') x.cancel(); } catch (e) { } }); };
   function switchTab(name, drag) {
     const list = tabs(), from = list.findIndex(t => t.classList.contains('on')), to = list.findIndex(t => t.dataset.tab === name);
     if (to < 0) return;
-    if (anim) { try { anim.cancel(); } catch (e) {} anim = null; }
+    if (anim) { try { anim.cancel(); } catch (e) { } anim = null; }
     const prevEl = from >= 0 && from !== to ? viewOf(list[from].dataset.tab) : null;
     const ghost = prevEl && !still() && !lite() && prevEl.classList.contains('active') ? makeGhost(prevEl) : null; // ukur SEBELUM kelas active berpindah
     document.querySelectorAll('.view.ghost').forEach(v => { if (!ghost || v !== ghost.el) { v.classList.remove('ghost'); v.style.cssText = ''; } });
@@ -218,28 +220,28 @@ const renderAll = () => { renderChart(); renderTable(); renderLists(); renderTod
     document.querySelectorAll('.view').forEach(v => { if (v.id === 'view-' + name) unfill(v); v.classList.toggle('active', v.id === 'view-' + name); if (v.id !== 'view-' + name && !(ghost && v === ghost.el)) { v.style.transform = ''; v.style.opacity = ''; } });
     afterSwitch(name);
     const hd = document.querySelector('.head'), top = hd.getBoundingClientRect().bottom + scrollY - 8; // isi baru mulai dari bawah header
-    if (scrollY > top && !mqDesk.matches) scrollTo({top, behavior: 'instant'});
+    if (scrollY > top && !mqDesk.matches) scrollTo({ top, behavior: 'instant' });
     if (ghost) ghost.el.scrollTop = ghost.off;
     const next = viewOf(name);
     const unGhost = () => { if (ghost) { ghost.el.classList.remove('ghost'); ghost.el.style.cssText = ''; unfill(ghost.el); } };
     if (to === from || from < 0 || !next) { unGhost(); return; }
     const track = list => { // satu "pegangan" untuk semua animasi tab ini, supaya ketukan beruntun / geser jari bisa membatalkannya
-      const h = {cancel() { list.forEach(x => { try { x.cancel(); } catch (e) {} }); unGhost(); }, finished: Promise.allSettled(list.map(x => x.finished))};
+      const h = { cancel() { list.forEach(x => { try { x.cancel(); } catch (e) { } }); unGhost(); }, finished: Promise.allSettled(list.map(x => x.finished)) };
       anim = h; h.finished.then(() => { if (anim === h) anim = null; unGhost(); });
     };
     if (still()) { // "Kurangi Gerakan" aktif: tanpa geser/skala, tapi tetap pudar lembut (seperti iOS), bukan tiba-tiba muncul
-      track([next.animate([{opacity: 0}, {opacity: 1}], {duration: 240, easing: 'ease-out', fill: 'backwards'})]);
+      track([next.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: 'ease-out', fill: 'backwards' })]);
       return;
     }
     const dir = to > from ? 1 : -1, off = mqDesk.matches ? 28 : (lite() || mqMobile.matches) ? 34 : 60;
     const items = cascade(next); // diukur sebelum animasi view dibuat
-    const a = next.animate([{opacity: 0, transform: mqDesk.matches ? `translate3d(0,${dir * off}px,0)` : `translate3d(${dir * off}px,0,0)`}, {opacity: 1, offset: .35}, {opacity: 1, transform: 'none'}],
-      {duration: IN_MS(), delay: lite() ? 30 : 60, easing: EASE, fill: 'backwards'});
+    const a = next.animate([{ opacity: 0, transform: mqDesk.matches ? `translate3d(0,${dir * off}px,0)` : `translate3d(${dir * off}px,0,0)` }, { opacity: 1, offset: .35 }, { opacity: 1, transform: 'none' }],
+      { duration: IN_MS(), delay: lite() ? 30 : 60, easing: EASE, fill: 'backwards' });
     const outs = [];
     if (ghost) {
       const dragO = drag && drag.opacity != null ? drag.opacity : 1;
-      outs.push(ghost.el.animate([{opacity: dragO, transform: 'none'}, {opacity: 0, transform: mqDesk.matches ? `translate3d(0,${-dir * off * 0.6}px,0)` : `translate3d(${-dir * off * 0.6}px,0,0)`}],
-        {duration: OUT_MS(), easing: 'cubic-bezier(.3,.6,.3,1)', fill: 'forwards'}));
+      outs.push(ghost.el.animate([{ opacity: dragO, transform: 'none' }, { opacity: 0, transform: mqDesk.matches ? `translate3d(0,${-dir * off * 0.6}px,0)` : `translate3d(${-dir * off * 0.6}px,0,0)` }],
+        { duration: OUT_MS(), easing: 'cubic-bezier(.3,.6,.3,1)', fill: 'forwards' }));
     }
     track([a, ...items, ...outs]);
     if (window.liquid) window.liquid.watch(IN_MS() + 220, typeof toast === 'function' ? toast : null);
@@ -251,15 +253,28 @@ const renderAll = () => { renderChart(); renderTable(); renderLists(); renderTod
   const tb = document.querySelector('.tabbar');
   const ico = document.querySelector('link[rel=icon]')?.href || '';
   tb.insertAdjacentHTML('afterbegin', `<div class="sb-brand" aria-hidden="true"><img src="${ico}" alt=""><b>Idoling<br>Admin</b></div>`);
-  tb.insertAdjacentHTML('beforeend', '<div class="sb-keys" aria-hidden="true"><div><kbd>←</kbd><kbd>→</kbd>ganti tab</div><div><kbd>Esc</kbd>tutup</div></div>');
+  tb.insertAdjacentHTML('beforeend', '<div class="sb-keys" aria-hidden="true"><div><kbd>←</kbd><kbd>→</kbd>ganti tab</div><div><kbd>/</kbd>cari data</div><div><kbd>Ctrl</kbd><kbd>↵</kbd>simpan</div><div><kbd>Esc</kbd>tutup</div></div>');
   if (typeof moveInd === 'function') { moveInd(true); requestAnimationFrame(() => moveInd(true)); } // logo menggeser tab ke bawah: hitung ulang posisi pil
 
-  /* keyboard: ← → ganti tab */
+  /* keyboard: ← → ganti tab, / cari data, Ctrl+Enter simpan form */
   const typing = t => !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
   document.addEventListener('keydown', e => {
-    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    if (e.defaultPrevented) return;
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && $('view-crud')?.classList.contains('active') && !document.querySelector('.overlay.open')) {
+      e.preventDefault(); $('btn-submit')?.click(); return;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    if (typing(e.target) || document.querySelector('.overlay.open')) return;
+    if (e.key === '/') {
+      const q = $('search'), crudTab = document.querySelector('.tab[data-tab="crud"]');
+      if (!q || !crudTab) return;
+      e.preventDefault();
+      if (!crudTab.classList.contains('on')) crudTab.click();
+      requestAnimationFrame(() => { q.focus(); q.select(); });
+      return;
+    }
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    if (typing(e.target) || document.querySelector('.overlay.open') || e.target.id === 'seating-wrapper') return;
+    if (e.target.id === 'seating-wrapper') return;
     const list = tabs(), i = list.findIndex(b => b.classList.contains('on')), n = list[i + (e.key === 'ArrowRight' ? 1 : -1)];
     if (n) { e.preventDefault(); n.click(); }
   });
@@ -268,7 +283,7 @@ const renderAll = () => { renderChart(); renderTable(); renderLists(); renderTod
 })();
 
 // ---------- Toast & urungkan ----------
-const toastEl = document.body.appendChild(Object.assign(document.createElement('div'), {id: 'toast', role: 'status'}));
+const toastEl = document.body.appendChild(Object.assign(document.createElement('div'), { id: 'toast', role: 'status' }));
 let toastT = 0;
 function toast(msg, action, ms = 2600) { // action: {label, fn}
   clearTimeout(toastT);
@@ -284,7 +299,7 @@ function toast(msg, action, ms = 2600) { // action: {label, fn}
   toastT = setTimeout(() => toastEl.classList.remove('on'), ms);
 }
 // hapus langsung, tanpa dialog; "Urungkan" memulihkan selama beberapa detik (toast terbaru menggantikan yang lama)
-const undoToast = (what, restore) => toast('Dihapus: ' + what, {label: 'Urungkan', fn: restore}, 6500);
+const undoToast = (what, restore) => toast('Dihapus: ' + what, { label: 'Urungkan', fn: restore }, 6500);
 
 // ---------- Form ----------
 const setMsg = t => { const m = $('msg'); m.textContent = t || ''; m.classList.remove('pulse'); if (t) { void m.offsetWidth; m.classList.add('pulse'); } };
@@ -417,7 +432,7 @@ $('extras').addEventListener('click', e => {
   const b = e.target.closest('[data-mp]');
   if (!b) return;
   const inp = $('m-' + b.dataset.mp);
-  inp.value = b.dataset.n; inp.dispatchEvent(new Event('input', {bubbles: true}));
+  inp.value = b.dataset.n; inp.dispatchEvent(new Event('input', { bubbles: true }));
   renderMPick();
 });
 $('extras').addEventListener('input', e => { if (/^m-/.test(e.target.id || '')) renderMPick(); });
@@ -466,7 +481,7 @@ KINDS.forEach(K => {
 const exCell = r => {
   const e = extras(r);
   return e.length ? e.map(x => `<div><span class="ts-ya">${esc(x.label)} (${esc(x.member) || '-'})</span>${x.photo ? `<img class="thumb" src="${esc(x.photo)}" data-photo alt="Foto">` : ''}</div>`).join('')
-                  : '<span class="ts-no">-</span>';
+    : '<span class="ts-no">-</span>';
 };
 
 function resetForm(keep) { // keep === true: kosongkan kursi & keterangan saja, tanggal/setlist/sesi/harga/jenis tiket dipertahankan
@@ -494,9 +509,9 @@ function fieldErr(id, msg) {
   const el = $(id), g = el.closest('.fg');
   clearErrs();
   g.classList.add('err'); el.setAttribute('aria-invalid', 'true');
-  g.appendChild(Object.assign(document.createElement('small'), {className: 'ferr', textContent: msg}));
-  el.scrollIntoView({block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
-  el.focus({preventScroll: true});
+  g.appendChild(Object.assign(document.createElement('small'), { className: 'ferr', textContent: msg }));
+  el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  el.focus({ preventScroll: true });
   void g.offsetWidth; g.classList.add('shake');
 }
 $('form').addEventListener('input', e => { // mulai mengetik = error kolom itu hilang
@@ -576,13 +591,15 @@ $('form').addEventListener('submit', async e => {
   renderAll();
   toast((id ? 'Diperbarui: ' : 'Tersimpan: ') + rec.seat + ' · ' + rec.setlist + (addedLu.length ? ' · masuk lineup: ' + addedLu.join(', ') : '') + (synced ? ' · lineup disamakan ke ' + synced + ' kursi lain' : '') + (freshNames.length ? ' · nama baru (cek ejaan): ' + freshNames.slice(0, 2).join(', ') + (freshNames.length > 2 ? '…' : '') : ''),
     prevCopy
-      ? {label: 'Urungkan', fn: () => { // kembalikan data & lineup kursi lain yang ikut disamakan
-        const i = records.findIndex(r => r.id === prevCopy.id);
-        if (i !== -1) records[i] = prevCopy;
-        prevLu.forEach(([rid, lu]) => { const r = records.find(x => x.id === rid); if (r) r.lineup = lu; });
-        save(); renderAll(); toast('Perubahan dibatalkan: ' + prevCopy.seat + ' · ' + prevCopy.setlist);
-      }}
-      : {label: 'Lihat', fn: () => { const tr = $('tbody').querySelector(`tr[data-rid="${rec.id}"]`); if (!tr) return; tr.scrollIntoView({behavior: 'smooth', block: 'center'}); tr.classList.remove('flash'); void tr.offsetWidth; tr.classList.add('flash'); }},
+      ? {
+        label: 'Urungkan', fn: () => { // kembalikan data & lineup kursi lain yang ikut disamakan
+          const i = records.findIndex(r => r.id === prevCopy.id);
+          if (i !== -1) records[i] = prevCopy;
+          prevLu.forEach(([rid, lu]) => { const r = records.find(x => x.id === rid); if (r) r.lineup = lu; });
+          save(); renderAll(); toast('Perubahan dibatalkan: ' + prevCopy.seat + ' · ' + prevCopy.setlist);
+        }
+      }
+      : { label: 'Lihat', fn: () => { const tr = $('tbody').querySelector(`tr[data-rid="${rec.id}"]`); if (!tr) return; tr.scrollIntoView({ behavior: 'smooth', block: 'center' }); tr.classList.remove('flash'); void tr.offsetWidth; tr.classList.add('flash'); } },
     prevCopy ? 6500 : 2600);
 });
 
@@ -649,7 +666,7 @@ $('tbody').addEventListener('click', async e => {
 $('tbody').addEventListener('click', e => {
   const b = e.target.closest('[data-empty]');
   if (!b) return;
-  if (b.dataset.empty === 'add') { $('f-seat').scrollIntoView({behavior: 'smooth', block: 'center'}); $('f-seat').focus({preventScroll: true}); }
+  if (b.dataset.empty === 'add') { $('f-seat').scrollIntoView({ behavior: 'smooth', block: 'center' }); $('f-seat').focus({ preventScroll: true }); }
   else if (b.dataset.empty === 'restore') $('btn-import').click();
   else { $('search').value = ''; if (typeof taskF !== 'undefined') taskF = ''; page = 1; renderTable(); if (typeof renderTodo === 'function') renderTodo(); }
 });
@@ -666,7 +683,7 @@ const dl = (blob, name) => {
 };
 // Backup lengkap: foto tetap di dalam JSON (dipakai untuk Restore)
 $('btn-export').addEventListener('click', () => {
-  dl(new Blob([JSON.stringify({records, tickets, prices, away, solo, misc}, null, 2)], {type: 'application/json'}), 'backup-lengkap.json');
+  dl(new Blob([JSON.stringify({ records, tickets, prices, away, solo, misc }, null, 2)], { type: 'application/json' }), 'backup-lengkap.json');
   markExported();
 });
 
@@ -682,7 +699,7 @@ async function thumbBytes(dataUrl, w = 320) {
   const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.7));
   return new Uint8Array(await blob.arrayBuffer());
 }
-const crcT = Array.from({length: 256}, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+const crcT = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
 const crc32 = u => { let c = -1; for (const b of u) c = crcT[(c ^ b) & 255] ^ (c >>> 8); return (c ^ -1) >>> 0; };
 function makeZip(files) {
   const enc = new TextEncoder(), parts = [], cen = [];
@@ -696,7 +713,7 @@ function makeZip(files) {
     off += 30 + nm.length + sz;
   }
   const cs = cen.reduce((a, p) => a + p.length, 0);
-  return new Blob([...parts, ...cen, new Uint8Array([0x50, 0x4b, 5, 6, 0, 0, 0, 0, ...n16(files.length), ...n16(files.length), ...n32(cs), ...n32(off), 0, 0])], {type: 'application/zip'});
+  return new Blob([...parts, ...cen, new Uint8Array([0x50, 0x4b, 5, 6, 0, 0, 0, 0, ...n16(files.length), ...n16(files.length), ...n32(cs), ...n32(off), 0, 0])], { type: 'application/zip' });
 }
 // Paket publish: data.json tanpa base64 + folder photos/ berisi foto sebagai file
 const POK = KEY + '_pub';
@@ -710,56 +727,56 @@ $('btn-zip').addEventListener('click', async () => {
   const btn = $('btn-zip'), label = btn.textContent;
   btn.disabled = true; btn.textContent = 'Menyiapkan foto…';
   try {
-  const files = [];
-  const opt = {tickets: $('po-tickets').checked, photos: $('po-photos').checked, mask: $('po-mask').checked, blur: $('po-blur').checked};
-  const mask = n => n ? n.split(/\s+/).map(w => w[0].toUpperCase()).join('.') + '.' : '';
-  const pub = [];
-  for (const r of records) {
-    const o = {...r};
-    o.harga = 0; // harga hanya untuk admin: data.json publik tidak boleh memuatnya (tetap ada di backup lengkap)
-    if (opt.mask) o.lineup = (o.lineup || []).map(mask);
-    for (const K of KINDS) {
-      if (opt.mask) o[K.m] = mask(o[K.m]);
-      if (!opt.photos) { o[K.p] = ''; continue; }
-      const m = String(o[K.p] || '').match(/^data:image\/(\w+);base64,(.*)$/s);
-      if (!m) continue;
-      const base = `${r.id}-${K.k}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
-      files.push({name: 'photos/' + base, data: Uint8Array.from(atob(m[2]), c => c.charCodeAt(0))});
-      try { files.push({name: 'photos/t/' + base, data: await thumbBytes(o[K.p])}); } catch (e) { /* tanpa thumbnail: galeri memakai foto penuh */ }
-      o[K.p] = 'photos/' + base;
+    const files = [];
+    const opt = { tickets: $('po-tickets').checked, photos: $('po-photos').checked, mask: $('po-mask').checked, blur: $('po-blur').checked };
+    const mask = n => n ? n.split(/\s+/).map(w => w[0].toUpperCase()).join('.') + '.' : '';
+    const pub = [];
+    for (const r of records) {
+      const o = { ...r };
+      o.harga = 0; // harga hanya untuk admin: data.json publik tidak boleh memuatnya (tetap ada di backup lengkap)
+      if (opt.mask) o.lineup = (o.lineup || []).map(mask);
+      for (const K of KINDS) {
+        if (opt.mask) o[K.m] = mask(o[K.m]);
+        if (!opt.photos) { o[K.p] = ''; continue; }
+        const m = String(o[K.p] || '').match(/^data:image\/(\w+);base64,(.*)$/s);
+        if (!m) continue;
+        const base = `${r.id}-${K.k}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
+        files.push({ name: 'photos/' + base, data: Uint8Array.from(atob(m[2]), c => c.charCodeAt(0)) });
+        try { files.push({ name: 'photos/t/' + base, data: await thumbBytes(o[K.p]) }); } catch (e) { /* tanpa thumbnail: galeri memakai foto penuh */ }
+        o[K.p] = 'photos/' + base;
+      }
+      pub.push(o);
     }
-    pub.push(o);
-  }
-  const soloPub = [];
-  for (const w of solo) { // sesi lepas ikut dipublikasikan; foto jadi file + thumbnail seperti foto riwayat
-    const o = {...w};
-    if (opt.mask) o.member = mask(o.member);
-    const m = opt.photos ? String(o.photo || '').match(/^data:image\/(\w+);base64,(.*)$/s) : null;
-    if (!opt.photos) o.photo = '';
-    else if (m) {
-      const base = `solo-${w.id}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
-      files.push({name: 'photos/' + base, data: Uint8Array.from(atob(m[2]), c => c.charCodeAt(0))});
-      try { files.push({name: 'photos/t/' + base, data: await thumbBytes(o.photo)}); } catch (e) { /* tanpa thumbnail */ }
-      o.photo = 'photos/' + base;
+    const soloPub = [];
+    for (const w of solo) { // sesi lepas ikut dipublikasikan; foto jadi file + thumbnail seperti foto riwayat
+      const o = { ...w };
+      if (opt.mask) o.member = mask(o.member);
+      const m = opt.photos ? String(o.photo || '').match(/^data:image\/(\w+);base64,(.*)$/s) : null;
+      if (!opt.photos) o.photo = '';
+      else if (m) {
+        const base = `solo-${w.id}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
+        files.push({ name: 'photos/' + base, data: Uint8Array.from(atob(m[2]), c => c.charCodeAt(0)) });
+        try { files.push({ name: 'photos/t/' + base, data: await thumbBytes(o.photo) }); } catch (e) { /* tanpa thumbnail */ }
+        o.photo = 'photos/' + base;
+      }
+      soloPub.push(o);
     }
-    soloPub.push(o);
-  }
-  const tkPub = [];
-  if (opt.tickets) for (const t of tickets) { // foto 2-Shot event jadi file + thumbnail
-    const o = {...t};
-    const m = opt.photos ? String(o.photo || '').match(/^data:image\/(\w+);base64,(.*)$/s) : null;
-    if (!opt.photos) o.photo = '';
-    else if (m) {
-      const base = `tk-${String(t.k || t.tx || tkPub.length).replace(/[^\w-]/g, '_')}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
-      files.push({name: 'photos/' + base, data: Uint8Array.from(atob(m[2]), c => c.charCodeAt(0))});
-      try { files.push({name: 'photos/t/' + base, data: await thumbBytes(o.photo)}); } catch (e) { /* tanpa thumbnail */ }
-      o.photo = 'photos/' + base;
+    const tkPub = [];
+    if (opt.tickets) for (const t of tickets) { // foto 2-Shot event jadi file + thumbnail
+      const o = { ...t };
+      const m = opt.photos ? String(o.photo || '').match(/^data:image\/(\w+);base64,(.*)$/s) : null;
+      if (!opt.photos) o.photo = '';
+      else if (m) {
+        const base = `tk-${String(t.k || t.tx || tkPub.length).replace(/[^\w-]/g, '_')}.${m[1] === 'jpeg' ? 'jpg' : m[1]}`;
+        files.push({ name: 'photos/' + base, data: Uint8Array.from(atob(m[2]), c => c.charCodeAt(0)) });
+        try { files.push({ name: 'photos/t/' + base, data: await thumbBytes(o.photo) }); } catch (e) { /* tanpa thumbnail */ }
+        o.photo = 'photos/' + base;
+      }
+      tkPub.push(o);
     }
-    tkPub.push(o);
-  }
-  files.unshift({name: 'data.json', data: new TextEncoder().encode(JSON.stringify({records: pub, solo: soloPub, tickets: opt.tickets ? tkPub.map(t => ({...t, tx: undefined, ...(opt.mask ? {member: mask(t.member)} : {}), ...(opt.blur && BLUR_CATS.includes(tcat(t)) ? {bought: 1} : {})})) : [], updated: new Date().toISOString().slice(0, 10)}, null, 1))});
-  dl(makeZip(files), 'data-publish.zip');
-  markExported();
+    files.unshift({ name: 'data.json', data: new TextEncoder().encode(JSON.stringify({ records: pub, solo: soloPub, tickets: opt.tickets ? tkPub.map(t => ({ ...t, tx: undefined, ...(opt.mask ? { member: mask(t.member) } : {}), ...(opt.blur && BLUR_CATS.includes(tcat(t)) ? { bought: 1 } : {}) })) : [], updated: new Date().toISOString().slice(0, 10) }, null, 1)) });
+    dl(makeZip(files), 'data-publish.zip');
+    markExported();
   } finally { btn.disabled = false; btn.textContent = label; }
 });
 $('btn-import').addEventListener('click', () => $('file-import').click());
@@ -785,7 +802,7 @@ $('file-import').addEventListener('change', async e => {
     const freshAway = full && Array.isArray(json.away) ? newBy(away, json.away, cleanAway, w => w.date) : [];
     const freshSolo = full && Array.isArray(json.solo) ? newBy(solo, json.solo, sanitizeSolo, w => w.date) : [];
     const tkIn = full && Array.isArray(json.tickets) ? json.tickets.length : 0;
-    const newPrices = full && json.prices && json.prices.base ? {base: {...DEF_PRICES.base, ...json.prices.base}, over: Array.isArray(json.prices.over) ? json.prices.over : []} : null;
+    const newPrices = full && json.prices && json.prices.base ? { base: { ...DEF_PRICES.base, ...json.prices.base }, over: Array.isArray(json.prices.over) ? json.prices.over : [] } : null;
     const pricesChanged = !!newPrices && JSON.stringify(newPrices) !== JSON.stringify(prices);
     const parts = [];
     if (fresh.length) parts.push(`${fresh.length} show`);
@@ -798,7 +815,7 @@ $('file-import').addEventListener('change', async e => {
     if (!parts.length) { toast('Tidak ada yang baru di file ini.'); return; }
     if (!await ask(`Gabungkan dari file ini: ${parts.join(', ')}? (data lain yang id-nya sama dilewati; setelahnya bisa diurungkan)`, 'Gabungkan')) return;
 
-    const snap = JSON.parse(JSON.stringify({records, tickets, solo, misc, away, prices})); // untuk Urungkan
+    const snap = JSON.parse(JSON.stringify({ records, tickets, solo, misc, away, prices })); // untuk Urungkan
     if (tkIn) mergeTickets(json.tickets);
     if (pricesChanged) { prices = newPrices; savePrices(); }
     if (freshMisc.length) { misc.push(...freshMisc); saveMisc(); }
@@ -809,11 +826,13 @@ $('file-import').addEventListener('change', async e => {
     records.push(...fresh);
     save();
     renderAll(); renderMisc();
-    toast('Digabungkan: ' + parts.join(', '), {label: 'Urungkan', fn: () => {
-      records = snap.records; tickets = snap.tickets; solo = snap.solo; misc = snap.misc; away = snap.away; prices = snap.prices;
-      save(); saveTickets(); saveSolo(); saveMisc(); saveAway(); savePrices();
-      renderAll(); renderMisc(); toast('Penggabungan dibatalkan.');
-    }}, 12000);
+    toast('Digabungkan: ' + parts.join(', '), {
+      label: 'Urungkan', fn: () => {
+        records = snap.records; tickets = snap.tickets; solo = snap.solo; misc = snap.misc; away = snap.away; prices = snap.prices;
+        save(); saveTickets(); saveSolo(); saveMisc(); saveAway(); savePrices();
+        renderAll(); renderMisc(); toast('Penggabungan dibatalkan.');
+      }
+    }, 12000);
   } catch (err) {
     alert('File tidak valid: ' + err.message);
   }
@@ -841,7 +860,7 @@ function jkCode() { // kode Console; mode "baru saja" memakai tanggal impor tera
   try {
     const last = stor.getItem('jkt48_last_import');
     if ($('jk-new').checked && last && tickets.length) { const d = new Date(last + 'T00:00:00'); d.setDate(d.getDate() - 30); since = localDay(d); }
-  } catch (e) {}
+  } catch (e) { }
   return $('jk-src').textContent.trim().replace('__SINCE__', since);
 }
 $('jk-new').addEventListener('change', () => { $('jk-code').value = jkCode(); });
@@ -874,7 +893,7 @@ $('jk-parse').addEventListener('click', () => {
   for (const t of list0) {
     if (t.type !== 'SHOW' || (!t.used && !all)) continue;
     const h = parseInt(t.start.slice(0, 2));
-    const x = {date: t.date, setlist: t.name, sesi: isNaN(h) ? '' : h < 17 ? 'Siang' : 'Malam'};
+    const x = { date: t.date, setlist: t.name, sesi: isNaN(h) ? '' : h < 17 ? 'Siang' : 'Malam' };
     const key = x.date + '|' + x.sesi;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -913,8 +932,8 @@ function mergeTickets(list) { // kunci sama = diperbarui, sisanya ditambah; tike
 try { tickets = (JSON.parse(stor.getItem(KEY + '_tickets')) || []).map(sanitizeTicket); } catch (e) { tickets = []; }
 $('jk-add').addEventListener('click', () => {
   const now = Date.now(), n = jkNew.length, nt = $('jk-tk').checked ? jkTk.length : 0;
-  jkNew.forEach((x, i) => records.push(sanitize({id: now + i, seat: '?', setlist: x.setlist, date: x.date, sesi: x.sesi}, i)));
-  if (nt) { mergeTickets(jkTk); try { stor.setItem('jkt48_last_import', localDay(new Date())); } catch (e) {} }
+  jkNew.forEach((x, i) => records.push(sanitize({ id: now + i, seat: '?', setlist: x.setlist, date: x.date, sesi: x.sesi }, i)));
+  if (nt) { mergeTickets(jkTk); try { stor.setItem('jkt48_last_import', localDay(new Date())); } catch (e) { } }
   save(); renderAll();
   jkNew = []; jkTk = []; $('jk-add').disabled = true; $('jk-out').textContent = ''; $('jk-in').value = '';
   closeEl('jk-modal');
@@ -960,11 +979,11 @@ $('cat-list').addEventListener('change', e => {
 // ---------- Daftar tugas: data yang masih perlu dilengkapi ----------
 let taskF = '';
 const TASKS = {
-  noSeat: {label: n => `${n} show belum punya kursi`, f: r => !SEATS.has(r.seat)},
-  noSesi: {label: n => `${n} show tanpa sesi (siang/malam)`, f: r => !r.sesi},
-  noPhoto: {label: n => `${n} 2-Shot/Chekicha tanpa foto`, f: r => (r.twoshot === 'Ya' && !r.photo) || (r.chekicha === 'Ya' && !r.ckPhoto)},
-  noLineup: {label: n => `${n} show belum ada lineup`, f: r => !(r.lineup || []).length},
-  noMember: {label: n => `${n} 2-Shot/Chekicha tanpa nama member`, f: r => (r.twoshot === 'Ya' && !r.member) || (r.chekicha === 'Ya' && !r.ckMember)}
+  noSeat: { label: n => `${n} show belum punya kursi`, f: r => !SEATS.has(r.seat) },
+  noSesi: { label: n => `${n} show tanpa sesi (siang/malam)`, f: r => !r.sesi },
+  noPhoto: { label: n => `${n} 2-Shot/Chekicha tanpa foto`, f: r => (r.twoshot === 'Ya' && !r.photo) || (r.chekicha === 'Ya' && !r.ckPhoto) },
+  noLineup: { label: n => `${n} show belum ada lineup`, f: r => !(r.lineup || []).length },
+  noMember: { label: n => `${n} 2-Shot/Chekicha tanpa nama member`, f: r => (r.twoshot === 'Ya' && !r.member) || (r.chekicha === 'Ya' && !r.ckMember) }
 };
 function renderTodo() {
   const chips = Object.entries(TASKS).map(([k, t]) => [k, records.filter(t.f).length, t.label]).filter(([, n]) => n)
@@ -985,21 +1004,21 @@ $('todo').addEventListener('click', e => {
   taskF = taskF === b.dataset.task ? '' : b.dataset.task; // klik lagi = lepas
   page = 1; $('search').value = '';
   renderTable(); renderTodo();
-  $('search').scrollIntoView({behavior: 'smooth', block: 'center'});
+  $('search').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
 // ---------- Total tiket Video Call, 2-Shot, dan MNG (hanya terlihat di admin) ----------
 let ttYear = '', ttKind = ''; // ttKind: '' = gabungan, atau 'vc' | 'ts' | 'mg' = satu jenis saja
 const TT_KINDS = [
-  {k: 'vc', label: 'Video Call', color: '#a78bfa'},
-  {k: 'ts', label: '2-Shot', color: '#ff2a5f'},
-  {k: 'mg', label: 'MNG', color: '#ffb347'}
+  { k: 'vc', label: 'Video Call', color: '#a78bfa' },
+  { k: 'ts', label: '2-Shot', color: '#ff2a5f' },
+  { k: 'mg', label: 'MNG', color: '#ffb347' }
 ];
 const PKG = /greet\s*&\s*2[- ]?shot/i; // tiket paket "Meet and Greet & 2-Shot" dihitung sebagai MNG
 const ticketKind = t => tcat(t) === 'Video Call' ? 'vc' : (/2[- ]?shot/i.test(t.name) && !PKG.test(t.name)) ? 'ts' : 'mg';
 const ttRows = () => tickets.filter(t => t.type !== 'SHOW' && BLUR_CATS.includes(tcat(t)) && raffleOf(t.raffle) !== 'lose'); // entri undian yang kalah bukan tiket yang dibeli
 const ttSum = a => a.reduce((x, t) => x + t.bought, 0);
-const ttAgg = a => ({vc: ttSum(a.filter(t => ticketKind(t) === 'vc')), ts: ttSum(a.filter(t => ticketKind(t) === 'ts')), mg: ttSum(a.filter(t => ticketKind(t) === 'mg'))});
+const ttAgg = a => ({ vc: ttSum(a.filter(t => ticketKind(t) === 'vc')), ts: ttSum(a.filter(t => ticketKind(t) === 'ts')), mg: ttSum(a.filter(t => ticketKind(t) === 'mg')) });
 const ttTot = v => v.vc + v.ts + v.mg;
 const ttSmall = v => `VC ${v.vc} · 2S ${v.ts} · MNG ${v.mg}`;
 const stackBar = (parts, max) => { // parts: [warna, nilai, label, teks]
@@ -1072,53 +1091,53 @@ $('tt').addEventListener('click', e => {
 // ---------- Pengeluaran: dihitung dari data yang sudah diinput + daftar harga ----------
 // pengeluaran lain yang dicatat manual: Livestream, Merch, Konser, Off-Air
 const MISC = [ // names: pilihan nama (tanpa tanggal); tanpa names = pakai tanggal dan nama bebas
-  {k: 'live', label: 'Livestream & App', icon: '', color: '#f472b6', groups: [['Livestream', ['IDN', 'Showroom', 'Saweria']], ['App', ['X', 'PM']]]},
-  {k: 'fanbase', label: 'Fanbase', icon: '', color: '#38bdf8', groups: [['Fanbase', ['Kas']]]},
-  {k: 'project', label: 'Project', icon: '', color: '#c084fc', groups: [['Project', ['SSK', 'RH', 'STS']]]},
-  {k: 'merch', label: 'Merch', icon: '', color: '#fb923c', nodate: true, ph: 'mis. photopack, lightstick, kaos'},
-  {k: 'gift', label: 'Gift', icon: '', color: '#f87171', member: true, ph: 'Nama member'},
-  {k: 'konser', label: 'Konser', icon: '', color: '#facc15', ph: 'mis. tiket konser, tiket festival'},
-  {k: 'offair', label: 'Off-Air', icon: '', color: '#2dd4bf', ph: 'mis. nama event off-air'}
+  { k: 'live', label: 'Livestream & App', icon: '', color: '#f472b6', groups: [['Livestream', ['IDN', 'Showroom', 'Saweria']], ['App', ['X', 'PM']]] },
+  { k: 'fanbase', label: 'Fanbase', icon: '', color: '#38bdf8', groups: [['Fanbase', ['Kas']]] },
+  { k: 'project', label: 'Project', icon: '', color: '#c084fc', groups: [['Project', ['SSK', 'RH', 'STS']]] },
+  { k: 'merch', label: 'Merch', icon: '', color: '#fb923c', nodate: true, ph: 'mis. photopack, lightstick, kaos' },
+  { k: 'gift', label: 'Gift', icon: '', color: '#f87171', member: true, ph: 'Nama member' },
+  { k: 'konser', label: 'Konser', icon: '', color: '#facc15', ph: 'mis. tiket konser, tiket festival' },
+  { k: 'offair', label: 'Off-Air', icon: '', color: '#2dd4bf', ph: 'mis. nama event off-air' }
 ];
 const miscNames = M => (M.groups || []).flatMap(g => g[1]);
 const miscByName = k => { const M = MISC.find(x => x.k === k); return !!(M.groups || M.nodate || M.member); }; // true = tanpa tanggal
 const EX_ITEMS = [
-  {k: 'theater', label: 'Tiket theater', g: 'theater', base: 200000, unit: 'show'},
-  {k: 'ts_roulette', label: '2-Shot Roulette', g: 'ts', base: 100000, unit: 'sesi'},
-  {k: 'ts_bday', label: 'Birthday 2-Shot', g: 'ts', base: 250000, unit: 'sesi'},
-  {k: 'ck_roulette', label: 'Chekicha', g: 'ck', base: 150000, unit: 'sesi'},
-  {k: 'ck_bday', label: 'Birthday Chekicha', g: 'ck', base: 250000, unit: 'sesi'},
-  {k: 'ts_event', label: '2-Shot Event', g: 'ts', base: 180000, unit: 'tiket'},
-  {k: 'mng', label: 'MNG', g: 'mng', base: 50000, unit: 'tiket'},
-  {k: 'vc', label: 'Video Call', g: 'vc', base: 120000, unit: 'tiket'}
+  { k: 'theater', label: 'Tiket theater', g: 'theater', base: 200000, unit: 'show' },
+  { k: 'ts_roulette', label: '2-Shot Roulette', g: 'ts', base: 100000, unit: 'sesi' },
+  { k: 'ts_bday', label: 'Birthday 2-Shot', g: 'ts', base: 250000, unit: 'sesi' },
+  { k: 'ck_roulette', label: 'Chekicha', g: 'ck', base: 150000, unit: 'sesi' },
+  { k: 'ck_bday', label: 'Birthday Chekicha', g: 'ck', base: 250000, unit: 'sesi' },
+  { k: 'ts_event', label: '2-Shot Event', g: 'ts', base: 180000, unit: 'tiket' },
+  { k: 'mng', label: 'MNG', g: 'mng', base: 50000, unit: 'tiket' },
+  { k: 'vc', label: 'Video Call', g: 'vc', base: 120000, unit: 'tiket' }
 ];
 const EX_GROUPS = [
-  {g: 'theater', label: 'Tiket theater', color: '#ff8c00'}, {g: 'ts', label: '2-Shot', color: '#ff2a5f'}, {g: 'ck', label: 'Chekicha', color: '#34d399'},
-  {g: 'mng', label: 'MNG', color: '#ffd23f'}, {g: 'vc', label: 'Video Call', color: '#a78bfa'}, {g: 'away', label: 'Away', color: '#22d3ee'},
-  ...MISC.map(M => ({g: 'm_' + M.k, label: M.label, color: M.color}))
+  { g: 'theater', label: 'Tiket theater', color: '#ff8c00' }, { g: 'ts', label: '2-Shot', color: '#ff2a5f' }, { g: 'ck', label: 'Chekicha', color: '#34d399' },
+  { g: 'mng', label: 'MNG', color: '#ffd23f' }, { g: 'vc', label: 'Video Call', color: '#a78bfa' }, { g: 'away', label: 'Away', color: '#22d3ee' },
+  ...MISC.map(M => ({ g: 'm_' + M.k, label: M.label, color: M.color }))
 ];
 const EX_ITEM = Object.fromEntries(EX_ITEMS.map(i => [i.k, i]));
-const exItem = k => EX_ITEM[k] || (k.startsWith('misc:') ? {label: MISC.find(M => M.k === k.slice(5)).label, g: 'm_' + k.slice(5), unit: 'catatan'} : null) || {label: 'Away · ' + k.slice(5), g: 'away', unit: 'entri'}; // k = "away:Kategori"
+const exItem = k => EX_ITEM[k] || (k.startsWith('misc:') ? { label: MISC.find(M => M.k === k.slice(5)).label, g: 'm_' + k.slice(5), unit: 'catatan' } : null) || { label: 'Away · ' + k.slice(5), g: 'away', unit: 'entri' }; // k = "away:Kategori"
 const PRK = 'jkt48_prices_v1';
-const DEF_PRICES = {base: Object.fromEntries(EX_ITEMS.map(i => [i.k, i.base])), over: [{m: '2026-10', k: 'ts_event', p: 200000}, {m: '2026-10', k: 'mng', p: 60000}]}; // Okt 2026 harganya berbeda
+const DEF_PRICES = { base: Object.fromEntries(EX_ITEMS.map(i => [i.k, i.base])), over: [{ m: '2026-10', k: 'ts_event', p: 200000 }, { m: '2026-10', k: 'mng', p: 60000 }] }; // Okt 2026 harganya berbeda
 let prices = (() => {
-  try { const s = JSON.parse(stor.getItem(PRK)); if (s && s.base && Array.isArray(s.over)) return {base: {...DEF_PRICES.base, ...s.base}, over: s.over}; } catch (e) {}
+  try { const s = JSON.parse(stor.getItem(PRK)); if (s && s.base && Array.isArray(s.over)) return { base: { ...DEF_PRICES.base, ...s.base }, over: s.over }; } catch (e) { }
   return JSON.parse(JSON.stringify(DEF_PRICES));
 })();
-const savePrices = () => { try { stor.setItem(PRK, JSON.stringify(prices)); } catch (e) {} bumpDirty(); };
+const savePrices = () => { try { stor.setItem(PRK, JSON.stringify(prices)); } catch (e) { } bumpDirty(); };
 const priceOf = (k, m) => { const o = prices.over.find(x => x.k === k && x.m === m); return o ? o.p : prices.base[k]; }; // harga khusus bulan itu, kalau tidak ada pakai harga dasar
 let exYear = '', exOpen = false;
 function expenseLines() {
-  const L = [], add = (date, k, q) => { if (!date || !q) return; const m = date.slice(0, 7), p = priceOf(k, m); L.push({m, k, q, p, amt: q * p}); };
+  const L = [], add = (date, k, q) => { if (!date || !q) return; const m = date.slice(0, 7), p = priceOf(k, m); L.push({ m, k, q, p, amt: q * p }); };
   records.forEach(r => {
     add(r.date, 'theater', 1);
     if (r.twoshot === 'Ya') add(r.date, r.tsType === 'birthday' ? 'ts_bday' : 'ts_roulette', 1);
     if (r.chekicha === 'Ya') add(r.date, r.ckType === 'birthday' ? 'ck_bday' : 'ck_roulette', 1);
   });
-  ttRows().forEach(t => add(t.date, {vc: 'vc', ts: 'ts_event', mg: 'mng'}[ticketKind(t)], t.bought));
+  ttRows().forEach(t => add(t.date, { vc: 'vc', ts: 'ts_event', mg: 'mng' }[ticketKind(t)], t.bought));
   solo.forEach(w => add(w.date, soloKey(w), 1)); // sesi lepas: harga mengikuti daftar harga (dan penyesuaian per bulan)
-  misc.forEach(w => { if (w.amount) L.push({m: w.date ? w.date.slice(0, 7) : '', k: 'misc:' + w.kind, q: 1, p: w.amount, amt: w.amount, trip: '', nm: w.name}); }); // m kosong = tanpa tanggal
-  away.forEach(w => { if (w.date && w.amount) L.push({m: w.date.slice(0, 7), k: 'away:' + w.cat, q: 1, p: w.amount, amt: w.amount, trip: w.trip}); }); // catatan Away
+  misc.forEach(w => { if (w.amount) L.push({ m: w.date ? w.date.slice(0, 7) : '', k: 'misc:' + w.kind, q: 1, p: w.amount, amt: w.amount, trip: '', nm: w.name }); }); // m kosong = tanpa tanggal
+  away.forEach(w => { if (w.date && w.amount) L.push({ m: w.date.slice(0, 7), k: 'away:' + w.cat, q: 1, p: w.amount, amt: w.amount, trip: w.trip }); }); // catatan Away
   return L;
 }
 function renderExpense() {
@@ -1145,7 +1164,7 @@ function renderExpense() {
   const mKeys = Object.keys(byM).sort().reverse(), mMax = Math.max(1, ...mKeys.map(k => amt(byM[k])));
   const moHtml = mKeys.map(k => {
     const a = byM[k], rows = new Map();
-    a.forEach(l => { const aw = l.k.includes(':'), key = aw ? l.k : l.k + '|' + l.p, r = rows.get(key) || {k: l.k, p: l.p, q: 0, amt: 0, aw}; r.q += l.q; r.amt += l.amt; rows.set(key, r); });
+    a.forEach(l => { const aw = l.k.includes(':'), key = aw ? l.k : l.k + '|' + l.p, r = rows.get(key) || { k: l.k, p: l.p, q: 0, amt: 0, aw }; r.q += l.q; r.amt += l.amt; rows.set(key, r); });
     const lines2 = [...rows.values()].sort((x, y) => y.amt - x.amt).map(r => `<div class="ex-l"><span>${exItem(r.k).label}</span><span>${r.aw ? r.q + ' catatan' : r.q + ' ' + exItem(r.k).unit + ' × ' + rupiah(r.p)}</span><b>${rupiah(r.amt)}</b></div>`).join('');
     return `<details class="tt-m ex-m"><summary><span class="nm">${esc(MON_ID[+k.slice(5, 7) - 1] + ' ' + k.slice(0, 4))}<small>${rows.size} jenis</small></span>${stackBar(gParts(a), mMax)}<span class="tot">${rupiah(amt(a))}</span></summary><div class="tt-ml">${lines2}</div></details>`;
   }).join('');
@@ -1167,7 +1186,7 @@ $('ex').addEventListener('click', e => {
   const y = e.target.closest('[data-ey]'), d = e.target.closest('[data-odel]'), ad = e.target.closest('[data-oadd]');
   if (y) exYear = y.dataset.ey;
   else if (d) { prices.over.splice(+d.dataset.odel, 1); savePrices(); exOpen = true; }
-  else if (ad) { prices.over.push({m: new Date().toISOString().slice(0, 7), k: 'ts_event', p: prices.base.ts_event}); savePrices(); exOpen = true; }
+  else if (ad) { prices.over.push({ m: new Date().toISOString().slice(0, 7), k: 'ts_event', p: prices.base.ts_event }); savePrices(); exOpen = true; }
   else return;
   renderExpense();
 });
@@ -1182,9 +1201,11 @@ $('ex').addEventListener('toggle', e => { if (e.target.classList && e.target.cla
 
 // ---------- Livestream / Merch / Konser / Off-Air: catatan pengeluaran manual ----------
 const MISK = 'jkt48_misc_v1';
-const cleanMisc = w => ({id: Number(w.id) || Date.now() + Math.floor(Math.random() * 1000), date: /^\d{4}-\d{2}-\d{2}/.test(w.date || '') ? String(w.date).slice(0, 10) : '', kind: MISC.some(M => M.k === w.kind) ? w.kind : 'merch',
-  name: String(w.name || '').trim().slice(0, 100), amount: Math.max(0, Math.round(Number(w.amount) || 0)), note: String(w.note || '').trim().slice(0, 200)});
-let misc = (() => { try { const s = JSON.parse(stor.getItem(MISK)); if (Array.isArray(s)) return s.map(cleanMisc).filter(w => w.date || miscByName(w.kind)); } catch (e) {} return []; })();
+const cleanMisc = w => ({
+  id: Number(w.id) || Date.now() + Math.floor(Math.random() * 1000), date: /^\d{4}-\d{2}-\d{2}/.test(w.date || '') ? String(w.date).slice(0, 10) : '', kind: MISC.some(M => M.k === w.kind) ? w.kind : 'merch',
+  name: String(w.name || '').trim().slice(0, 100), amount: Math.max(0, Math.round(Number(w.amount) || 0)), note: String(w.note || '').trim().slice(0, 200)
+});
+let misc = (() => { try { const s = JSON.parse(stor.getItem(MISK)); if (Array.isArray(s)) return s.map(cleanMisc).filter(w => w.date || miscByName(w.kind)); } catch (e) { } return []; })();
 const saveMisc = () => { try { stor.setItem(MISK, JSON.stringify(misc)); } catch (e) { alert('Gagal menyimpan catatan (penyimpanan penuh?)'); } bumpDirty(); };
 let miscKind = 'live', miscEdit = 0, miscLast = '';
 // catatan Away yang bertanda "off-air" dipindah ke Off-Air supaya tidak terhitung dua kali
@@ -1192,7 +1213,7 @@ function moveOffair() {
   const hit = away.filter(w => /off[\s-]?air/i.test(w.note + ' ' + w.trip));
   if (!hit.length) return 0;
   const ids = new Set(misc.map(w => w.id));
-  hit.forEach(w => { if (!ids.has(w.id)) misc.push(cleanMisc({id: w.id, date: w.date, kind: 'offair', name: w.note.replace(/\s*\(?\s*off[\s-]?air\s*\)?\s*/ig, ' ').trim() || w.note, amount: w.amount, note: w.trip ? 'Dipindah dari Away · ' + w.trip : 'Dipindah dari Away'})); });
+  hit.forEach(w => { if (!ids.has(w.id)) misc.push(cleanMisc({ id: w.id, date: w.date, kind: 'offair', name: w.note.replace(/\s*\(?\s*off[\s-]?air\s*\)?\s*/ig, ' ').trim() || w.note, amount: w.amount, note: w.trip ? 'Dipindah dari Away · ' + w.trip : 'Dipindah dari Away' })); });
   away = away.filter(w => !hit.includes(w));
   saveMisc(); saveAway();
   return hit.length;
@@ -1204,12 +1225,12 @@ function renderMisc() {
   const M = MISC.find(x => x.k === miscKind), byName = miscByName(M.k), today = new Date().toISOString().slice(0, 10);
   const all = misc.filter(w => w.kind === M.k), years = byName ? [] : [...new Set(all.map(w => w.date.slice(0, 4)))].sort().reverse();
   const list = (exYear && !byName ? all.filter(w => w.date.startsWith(exYear)) : all).slice().sort((x, y) => (y.date || '').localeCompare(x.date || '') || y.id - x.id), total = list.reduce((s, w) => s + w.amount, 0);
-  const ed = misc.find(w => w.id === miscEdit) || {date: miscLast || today, name: M.groups ? miscNames(M)[0] : '', amount: '', note: ''};
+  const ed = misc.find(w => w.id === miscEdit) || { date: miscLast || today, name: M.groups ? miscNames(M)[0] : '', amount: '', note: '' };
   const names = [...new Set([...miscNames(M), ...all.map(w => w.name).filter(Boolean)])]; // nama lama di luar pilihan tetap bisa dipilih
   const dateF = byName ? '' : `<label>Tanggal<input type="date" id="mi-date" value="${esc(ed.date)}"></label>`;
   const sel = M.groups ? `<label>Nama<select id="mi-name">${M.groups.map(g => `<optgroup label="${esc(g[0])}">${g[1].map(n => `<option${n === ed.name ? ' selected' : ''}>${esc(n)}</option>`).join('')}</optgroup>`).join('')}${names.filter(n => !miscNames(M).includes(n)).map(n => `<option${n === ed.name ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></label>`
     : M.member ? `<label>Member yang di-gift<input id="mi-name" list="mi-members" placeholder="Nama member" value="${esc(ed.name)}" autocomplete="off"><datalist id="mi-members">${[...new Set([...records.flatMap(r => [r.member, r.ckMember]), ...tickets.map(t => t.member), ...solo.map(w => w.member), ...names].filter(Boolean))].sort().map(m => `<option value="${esc(m)}">`).join('')}</datalist></label>`
-    : `${dateF}<label>Nama<input id="mi-name" placeholder="${esc(M.ph || '')}" value="${esc(ed.name)}" autocomplete="off"></label>`;
+      : `${dateF}<label>Nama<input id="mi-name" placeholder="${esc(M.ph || '')}" value="${esc(ed.name)}" autocomplete="off"></label>`;
   const perName = (M.groups || M.member) ? `<div class="tt-cards">${names.map((n, i) => { const a = list.filter(w => w.name === n); return `<div class="tt-c" style="--c:${M.color};--i:${i}"><b class="ex-n">${rupiah(a.reduce((s, w) => s + w.amount, 0))}</b><span class="tl">${esc(n)}</span><small>${a.length} catatan</small></div>`; }).join('')}</div>` : '';
   el.innerHTML = `<p class="tt-note">Hanya terlihat di admin. Catat pengeluaran ${esc(M.label)} di sini${byName ? ' (tanpa tanggal)' : ''}; totalnya otomatis masuk ke sub-tab Ringkasan. <b>Disimpan di browser ini saja</b>, jadi ikut Backup lengkap (JSON).${offairMoved && M.k === 'offair' ? ` ${offairMoved} catatan off-air dipindah otomatis dari Away.` : ''}</p>
     <div class="aw-form">
@@ -1230,12 +1251,12 @@ $('misc').addEventListener('click', async e => {
     if (!byName && !date) return alert('Isi tanggalnya dulu.');
     if (M.member && !$('mi-name').value.trim()) return alert('Isi nama member yang di-gift.');
     if (amount <= 0) return alert('Isi jumlah pengeluarannya (lebih dari 0).');
-    const rec = cleanMisc({id: miscEdit || Date.now(), date, kind: miscKind, name: $('mi-name').value, amount, note: $('mi-note').value}), i = misc.findIndex(w => w.id === rec.id);
+    const rec = cleanMisc({ id: miscEdit || Date.now(), date, kind: miscKind, name: $('mi-name').value, amount, note: $('mi-note').value }), i = misc.findIndex(w => w.id === rec.id);
     if (i >= 0) misc[i] = rec; else misc.push(rec);
     if (rec.date) miscLast = rec.date; miscEdit = 0;
     saveMisc(); renderMisc(); renderExpense(); $('mi-amt').focus();
   } else if (q('[data-micancel]')) { miscEdit = 0; renderMisc(); }
-  else if (q('[data-miedit]')) { miscEdit = Number(q('[data-miedit]').dataset.miedit); renderMisc(); $('mi-amt').scrollIntoView({behavior: 'smooth', block: 'center'}); }
+  else if (q('[data-miedit]')) { miscEdit = Number(q('[data-miedit]').dataset.miedit); renderMisc(); $('mi-amt').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   else if (q('[data-midel]')) {
     const id = Number(q('[data-midel]').dataset.midel), w = misc.find(x => x.id === id);
     if (w) {
@@ -1249,15 +1270,17 @@ $('misc').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.c
 
 // ---------- Away: pengeluaran saat fansfar (transportasi, penginapan, dll) ----------
 const AWAY_CATS = [
-  {c: 'Transportasi', color: '#60a5fa'}, {c: 'Penginapan', color: '#a78bfa'}, {c: 'Makan & minum', color: '#34d399'},
-  {c: 'Belanja / merch', color: '#ffb347'}, {c: 'Lainnya', color: '#9a9aa4'}
+  { c: 'Transportasi', color: '#60a5fa' }, { c: 'Penginapan', color: '#a78bfa' }, { c: 'Makan & minum', color: '#34d399' },
+  { c: 'Belanja / merch', color: '#ffb347' }, { c: 'Lainnya', color: '#9a9aa4' }
 ];
 const AWK = 'jkt48_away_v1';
-const cleanAway = w => ({id: Number(w.id) || Date.now() + Math.floor(Math.random() * 1000), date: String(w.date || '').slice(0, 10), trip: String(w.trip || '').trim().slice(0, 80),
-  cat: AWAY_CATS.some(x => x.c === w.cat) ? w.cat : 'Lainnya', amount: Math.max(0, Math.round(Number(w.amount) || 0)), note: String(w.note || '').trim().slice(0, 200)});
-let away = (() => { try { const s = JSON.parse(stor.getItem(AWK)); if (Array.isArray(s)) return s.map(cleanAway).filter(w => w.date); } catch (e) {} return []; })();
+const cleanAway = w => ({
+  id: Number(w.id) || Date.now() + Math.floor(Math.random() * 1000), date: String(w.date || '').slice(0, 10), trip: String(w.trip || '').trim().slice(0, 80),
+  cat: AWAY_CATS.some(x => x.c === w.cat) ? w.cat : 'Lainnya', amount: Math.max(0, Math.round(Number(w.amount) || 0)), note: String(w.note || '').trim().slice(0, 200)
+});
+let away = (() => { try { const s = JSON.parse(stor.getItem(AWK)); if (Array.isArray(s)) return s.map(cleanAway).filter(w => w.date); } catch (e) { } return []; })();
 const saveAway = () => { try { stor.setItem(AWK, JSON.stringify(away)); } catch (e) { alert('Gagal menyimpan catatan Away (penyimpanan penuh?)'); } bumpDirty(); };
-let awayEdit = 0, awayLast = {date: '', trip: ''}; // awayLast: tanggal & perjalanan terakhir, supaya input beruntun lebih cepat
+let awayEdit = 0, awayLast = { date: '', trip: '' }; // awayLast: tanggal & perjalanan terakhir, supaya input beruntun lebih cepat
 offairMoved = moveOffair(); // pindahkan catatan off-air dari Away ke Off-Air (sekali jalan, aman diulang)
 
 function renderAway() {
@@ -1266,7 +1289,7 @@ function renderAway() {
   const today = new Date().toISOString().slice(0, 10), sumA = a => a.reduce((s, w) => s + w.amount, 0), catColor = c => AWAY_CATS.find(x => x.c === c).color;
   const years = [...new Set(away.map(w => w.date.slice(0, 4)))].sort().reverse();
   const list = (exYear ? away.filter(w => w.date.startsWith(exYear)) : away).slice().sort((x, y) => y.date.localeCompare(x.date) || y.id - x.id), total = sumA(list);
-  const ed = away.find(w => w.id === awayEdit) || {date: awayLast.date || today, trip: awayLast.trip, cat: AWAY_CATS[0].c, amount: '', note: ''};
+  const ed = away.find(w => w.id === awayEdit) || { date: awayLast.date || today, trip: awayLast.trip, cat: AWAY_CATS[0].c, amount: '', note: '' };
   const trips = [...new Set(away.map(w => w.trip).filter(Boolean))];
   const form = `<div class="aw-form">
     <label>Tanggal<input type="date" id="aw-date" value="${esc(ed.date)}"></label>
@@ -1278,7 +1301,7 @@ function renderAway() {
   const catTot = AWAY_CATS.map(x => { const v = sumA(list.filter(w => w.cat === x.c)); return [x.color, v, x.c, rupiah(v)]; });
   const byTrip = {};
   list.forEach(w => { const k = w.trip || 'Tanpa nama perjalanan'; (byTrip[k] = byTrip[k] || []).push(w); });
-  const tList = Object.entries(byTrip).map(([n, w]) => { const ds = w.map(x => x.date).sort(); return {n, w, t: sumA(w), d1: ds[0], d2: ds[ds.length - 1]}; }).sort((x, y) => y.d2.localeCompare(x.d2));
+  const tList = Object.entries(byTrip).map(([n, w]) => { const ds = w.map(x => x.date).sort(); return { n, w, t: sumA(w), d1: ds[0], d2: ds[ds.length - 1] }; }).sort((x, y) => y.d2.localeCompare(x.d2));
   const tMax = Math.max(1, ...tList.map(x => x.t));
   const tHtml = tList.map(x => `<div class="tt-r aw-t"><span class="nm">${esc(x.n)}<small>${esc(x.d1 === x.d2 ? fmtDate(x.d1) : fmtDate(x.d1) + ' – ' + fmtDate(x.d2))} · ${x.w.length} catatan</small></span>${stackBar(AWAY_CATS.map(c => { const v = sumA(x.w.filter(w => w.cat === c.c)); return [c.color, v, c.c, rupiah(v)]; }), tMax)}<span class="tot">${rupiah(x.t)}</span></div>`).join('');
   const rows = list.map(w => `<div class="aw-row"><span>${esc(fmtDate(w.date))}</span><span class="aw-m"><i style="background:${catColor(w.cat)}"></i>${esc(w.cat)}${w.trip ? ' · ' + esc(w.trip) : ''}${w.note ? `<small>${esc(w.note)}</small>` : ''}</span><b>${rupiah(w.amount)}</b><span class="aw-b"><button type="button" class="btn-s" data-aedit="${w.id}" aria-label="Ubah catatan">✎</button><button type="button" class="btn-s" data-adel="${w.id}" aria-label="Hapus catatan">✕</button></span></div>`).join('');
@@ -1299,13 +1322,13 @@ $('away').addEventListener('click', async e => {
     const date = $('aw-date').value, amount = Math.round(Number($('aw-amt').value) || 0);
     if (!date) return alert('Isi tanggalnya dulu.');
     if (amount <= 0) return alert('Isi jumlah pengeluarannya (lebih dari 0).');
-    const rec = cleanAway({id: awayEdit || Date.now(), date, trip: $('aw-trip').value, cat: $('aw-cat').value, amount, note: $('aw-note').value});
+    const rec = cleanAway({ id: awayEdit || Date.now(), date, trip: $('aw-trip').value, cat: $('aw-cat').value, amount, note: $('aw-note').value });
     const i = away.findIndex(w => w.id === rec.id);
     if (i >= 0) away[i] = rec; else away.push(rec);
-    awayLast = {date: rec.date, trip: rec.trip}; awayEdit = 0;
+    awayLast = { date: rec.date, trip: rec.trip }; awayEdit = 0;
     saveAway(); renderAway(); renderExpense(); $('aw-amt').focus();
   } else if (q('[data-acancel]')) { awayEdit = 0; renderAway(); }
-  else if (q('[data-aedit]')) { awayEdit = Number(q('[data-aedit]').dataset.aedit); renderAway(); $('aw-date').scrollIntoView({behavior: 'smooth', block: 'center'}); }
+  else if (q('[data-aedit]')) { awayEdit = Number(q('[data-aedit]').dataset.aedit); renderAway(); $('aw-date').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   else if (q('[data-adel]')) {
     const id = Number(q('[data-adel]').dataset.adel), w = away.find(x => x.id === id);
     if (w) {
@@ -1328,7 +1351,7 @@ document.querySelectorAll('.ex-t').forEach(b => b.addEventListener('click', () =
 
 // ---------- Sesi lepas: Chekicha / 2-Shot di luar menonton theater ----------
 const SOLO_KEY = 'jkt48_solo_v1';
-solo = (() => { try { const s = JSON.parse(stor.getItem(SOLO_KEY)); if (Array.isArray(s)) return s.map(sanitizeSolo).filter(w => w.date); } catch (e) {} return []; })();
+solo = (() => { try { const s = JSON.parse(stor.getItem(SOLO_KEY)); if (Array.isArray(s)) return s.map(sanitizeSolo).filter(w => w.date); } catch (e) { } return []; })();
 const saveSolo = () => { try { stor.setItem(SOLO_KEY, JSON.stringify(solo)); } catch (e) { alert('Gagal menyimpan (penyimpanan penuh?). Unduh Backup lengkap dulu, lalu kurangi foto lama.'); } bumpDirty(); };
 const soloKey = w => (w.kind === 'ck' ? 'ck_' : 'ts_') + (w.type === 'birthday' ? 'bday' : 'roulette');
 const soloLabel = w => KINDS.find(k => k.k === w.kind).short[w.type];
@@ -1370,16 +1393,16 @@ $('tsev').addEventListener('click', async e => {
   if (t && t.photo) {
     const old = t.photo;
     t.photo = ''; saveTickets(); renderTsEv();
-    toast('Foto dihapus', {label: 'Urungkan', fn: () => { if (!t.photo) { t.photo = old; saveTickets(); renderTsEv(); } }}, 6500);
+    toast('Foto dihapus', { label: 'Urungkan', fn: () => { if (!t.photo) { t.photo = old; saveTickets(); renderTsEv(); } } }, 6500);
   }
 });
 
 let soloEdit = 0, soloPhoto = '', soloDraft = null;
-const soloForm = () => ({date: $('so-date').value, kind: $('so-kind').value, type: $('so-type').value, member: $('so-member').value.trim(), setlist: $('so-setlist').value.trim(), note: $('so-note').value.trim()});
+const soloForm = () => ({ date: $('so-date').value, kind: $('so-kind').value, type: $('so-type').value, member: $('so-member').value.trim(), setlist: $('so-setlist').value.trim(), note: $('so-note').value.trim() });
 function renderSolo() {
   const el = $('solo');
   if (!el) return;
-  const today = new Date().toISOString().slice(0, 10), ed = soloDraft || solo.find(w => w.id === soloEdit) || {date: today, kind: 'ck', type: 'roulette', member: '', setlist: '', note: ''};
+  const today = new Date().toISOString().slice(0, 10), ed = soloDraft || solo.find(w => w.id === soloEdit) || { date: today, kind: 'ck', type: 'roulette', member: '', setlist: '', note: '' };
   const members = [...new Set([...records.flatMap(r => [r.member, r.ckMember]), ...tickets.map(t => t.member), ...solo.map(w => w.member)].filter(Boolean))].sort();
   const setlists = [...new Set([...records.map(r => r.setlist), ...tickets.filter(t => t.type === 'SHOW').map(t => t.name)].filter(Boolean))].sort();
   const price = w => priceOf(soloKey(w), (w.date || today).slice(0, 7));
@@ -1423,7 +1446,7 @@ $('solo').addEventListener('click', async e => {
   else if (q('[data-sosave]')) {
     const f = soloForm();
     if (!f.date) return alert('Isi tanggalnya dulu.');
-    const rec = sanitizeSolo({id: soloEdit || Date.now(), ...f, photo: soloPhoto}, 0), i = solo.findIndex(w => w.id === rec.id);
+    const rec = sanitizeSolo({ id: soloEdit || Date.now(), ...f, photo: soloPhoto }, 0), i = solo.findIndex(w => w.id === rec.id);
     if (i >= 0) solo[i] = rec; else solo.push(rec);
     soloEdit = 0; soloPhoto = ''; soloDraft = null;
     saveSolo(); renderSolo(); renderExpense();
@@ -1431,8 +1454,8 @@ $('solo').addEventListener('click', async e => {
   else if (q('[data-soedit]')) {
     const w = solo.find(x => x.id === Number(q('[data-soedit]').dataset.soedit));
     if (!w) return;
-    soloEdit = w.id; soloPhoto = w.photo; soloDraft = {date: w.date, kind: w.kind, type: w.type, member: w.member, setlist: w.setlist, note: w.note};
-    renderSolo(); $('so-date').scrollIntoView({behavior: 'smooth', block: 'center'});
+    soloEdit = w.id; soloPhoto = w.photo; soloDraft = { date: w.date, kind: w.kind, type: w.type, member: w.member, setlist: w.setlist, note: w.note };
+    renderSolo(); $('so-date').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } else if (q('[data-sodel]')) {
     const id = Number(q('[data-sodel]').dataset.sodel), w = solo.find(x => x.id === id);
     if (w) {
